@@ -620,8 +620,12 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <title>Dashboard - Inquérito de Pesquisa Clínica</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="chart.umd.min.js"></script>
+  <script>
+    if (typeof Chart === 'undefined') {{
+      document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"><\\/script>');
+    }}
+  </script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {{
@@ -1153,6 +1157,15 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
     let temPos = {"true" if tem_pos else "false"};
     let momentoAtual = 1;
 
+    // Estado individual de cada bloco (1 = Pré, 2 = Pós, 3 = Mesclado)
+    var estadoBlocos = {{
+      barras: 1,
+      radar: 1,
+      faixas: 1,
+      slider: 1,
+      tabela: 1
+    }};
+
     const titulosQuestoes = {json.dumps(q_titulos)};
 
     // Plugin para renderizar percentuais em cima de cada barra
@@ -1431,14 +1444,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
       }}
     }});
 
-    // Estado individual de cada bloco (1 = Pré, 2 = Pós, 3 = Mesclado)
-    const estadoBlocos = {{
-      barras: 1,
-      radar: 1,
-      faixas: 1,
-      slider: 1,
-      tabela: 1
-    }};
+    // Estado individual de cada bloco já inicializado no topo
 
     function atualizarBotoesBloco(tipo, num) {{
       const prefixo = tipo === 'barras' ? 'btnB1_' :
