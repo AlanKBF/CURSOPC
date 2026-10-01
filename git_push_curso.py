@@ -34,8 +34,8 @@ def main():
     
     if code == 0:
         print("\n" + "="*60)
-        print("✅ PUSH REALIZADO COM SUCESSO NO GITHUB!")
-        print("Repositório: https://github.com/AlanKBF/CURSOPC")
+        print("[SUCESSO] PUSH REALIZADO COM SUCESSO NO GITHUB!")
+        print("Repositorio: https://github.com/AlanKBF/CURSOPC")
         print("Dashboard GitHub Pages: https://alankbf.github.io/CURSOPC/")
         print("="*60 + "\n")
     else:
