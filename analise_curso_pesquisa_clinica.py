@@ -2009,47 +2009,82 @@ def main():
     diretorio_base = os.path.abspath(args.output_dir)
     pasta_graficos = os.path.join(diretorio_base, "graficos")
 
-    # Localizar arquivo padrão se não informado
+    # Localizar arquivo padrão se não informado (prioriza o mais recente por data de modificação)
     caminho_pre = args.pre
     if not caminho_pre:
-        for f in os.listdir(diretorio_base):
-            if f.endswith(".csv") and "REPORT_DATA" in f:
-                caminho_pre = os.path.join(diretorio_base, f)
-                break
+        arquivos_report = [f for f in os.listdir(diretorio_base) if f.endswith(".csv") and "REPORT_DATA" in f]
+        if arquivos_report:
+            arquivos_report.sort(key=lambda x: (os.path.getmtime(os.path.join(diretorio_base, x)), x), reverse=True)
+            caminho_pre = os.path.join(diretorio_base, arquivos_report[0])
                 
     if not caminho_pre or not os.path.exists(caminho_pre):
         print(f"[ERRO] Arquivo de dados não encontrado em: {caminho_pre}")
         sys.exit(1)
         
-    print(f"[INFO] Processando Inquérito (Momento 1): {caminho_pre}")
+    print(f"[INFO] Processando Inquérito: {caminho_pre}")
     df_raw = carregar_csv_robusto(caminho_pre)
+    
+    # Detecção automática da 2ª entrada (Pós-teste) a partir do Record ID 22
+    df_raw_pos = None
+    if 'Record ID' in df_raw.columns and (pd.to_numeric(df_raw['Record ID'], errors='coerce') >= 22).any():
+        ids_num = pd.to_numeric(df_raw['Record ID'], errors='coerce')
+        print(f"[INFO] Detectada divisão no arquivo: Record ID < 22 (Pré-teste) e Record ID >= 22 (Pós-teste)")
+        df_raw_pos = df_raw[ids_num >= 22].copy()
+        df_raw = df_raw[ids_num < 22].copy()
+    elif args.pos and os.path.exists(args.pos):
+        print(f"[INFO] Processando Pós-teste fornecido via --pos: {args.pos}")
+        df_raw_pos = carregar_csv_robusto(args.pos)
+
     df_avaliado = processar_dataset(df_raw)
     
     # Salvar CSV avaliado
     caminho_csv_avaliado = os.path.join(diretorio_base, "dados_inquerito_avaliados.csv")
     df_avaliado.to_csv(caminho_csv_avaliado, index=False, encoding='utf-8-sig')
-    print(f"[OK] Dados avaliados exportados para: {caminho_csv_avaliado}")
+    print(f"[OK] Dados avaliados (Pré-teste, N={len(df_avaliado)}) exportados para: {caminho_csv_avaliado}")
 
-    # Verificar se há Momento 2 (Pós-teste)
+    # Processar e parear Momento 2 (Pós-teste)
     df_comparativo = None
     df_avaliado_pos = None
-    caminho_pos = args.pos
-    if caminho_pos and os.path.exists(caminho_pos):
-        print(f"[INFO] Processando Pós-teste (Momento 2): {caminho_pos}")
-        df_raw_pos = carregar_csv_robusto(caminho_pos)
+    if df_raw_pos is not None and len(df_raw_pos) > 0:
+        print(f"[INFO] Processando Pós-teste (Momento 2): {len(df_raw_pos)} respostas encontradas.")
         df_avaliado_pos = processar_dataset(df_raw_pos)
         
-        # Merge por NOME ou Record ID
+        caminho_csv_pos = os.path.join(diretorio_base, "dados_inquerito_avaliados_pos.csv")
+        df_avaliado_pos.to_csv(caminho_csv_pos, index=False, encoding='utf-8-sig')
+        print(f"[OK] Dados avaliados (Pós-teste, N={len(df_avaliado_pos)}) exportados para: {caminho_csv_pos}")
+
+        # Normalização de nomes para pareamento robusto
+        import unicodedata, re
+        def normalizar_nome(n):
+            if not isinstance(n, str): return ''
+            n = unicodedata.normalize('NFKD', n).encode('ASCII', 'ignore').decode('ASCII')
+            n = re.sub(r'[^a-zA-Z0-9\s]', '', n).strip().lower()
+            return n
+
+        alias_map = {
+            'carol': 'caroline',
+            'rutilene barbosa': 'rutilene barbosa souza',
+            'beatriz nogueira': 'beatriz'
+        }
+        
+        df_avaliado['Nome_Norm'] = df_avaliado['NOME'].apply(normalizar_nome)
+        df_avaliado_pos['Nome_Norm'] = df_avaliado_pos['NOME'].apply(normalizar_nome).apply(lambda x: alias_map.get(x, x))
+        
         df_comparativo = pd.merge(
             df_avaliado, df_avaliado_pos, 
-            on="NOME", suffixes=('_Pre', '_Pos')
+            on="Nome_Norm", suffixes=('_Pre', '_Pos')
         )
+        df_comparativo['NOME'] = df_comparativo['NOME_Pre']
+        df_comparativo['Score_Total_Pre'] = df_comparativo['Score_Total_18_Pre']
+        df_comparativo['Score_Total_Pos'] = df_comparativo['Score_Total_18_Pos']
         df_comparativo['Delta_Total'] = df_comparativo['Score_Total_18_Pos'] - df_comparativo['Score_Total_18_Pre']
+        df_comparativo['Delta_Nota'] = df_comparativo['Nota_10_Pos'] - df_comparativo['Nota_10_Pre']
+        df_comparativo['Delta_Pct'] = df_comparativo['Percentual_Acerto_Pos'] - df_comparativo['Percentual_Acerto_Pre']
         df_comparativo['Ganho_Hake'] = (df_comparativo['Delta_Total']) / (18.0 - df_comparativo['Score_Total_18_Pre']).replace(0, np.nan) * 100.0
         
         caminho_comp_csv = os.path.join(diretorio_base, "comparativo_pre_pos.csv")
         df_comparativo.to_csv(caminho_comp_csv, index=False, encoding='utf-8-sig')
-        print(f"[OK] Dados comparativos Pré x Pós salvos em: {caminho_comp_csv}")
+        print(f"[OK] Dados comparativos Pré x Pós ({len(df_comparativo)} alunos pareados) salvos em: {caminho_comp_csv}")
         criar_graficos_comparativos_pos(df_comparativo, pasta_graficos)
     elif "Event Name" in df_raw.columns and df_raw["Event Name"].nunique() > 1:
         # Suporte a múltiplos eventos no mesmo arquivo
@@ -2058,6 +2093,8 @@ def main():
         df_e1 = processar_dataset(df_raw[df_raw["Event Name"] == eventos[0]])
         df_avaliado_pos = processar_dataset(df_raw[df_raw["Event Name"] == eventos[1]])
         df_comparativo = pd.merge(df_e1, df_avaliado_pos, on="Record ID", suffixes=('_Pre', '_Pos'))
+        df_comparativo['Score_Total_Pre'] = df_comparativo['Score_Total_18_Pre']
+        df_comparativo['Score_Total_Pos'] = df_comparativo['Score_Total_18_Pos']
         df_comparativo['Delta_Total'] = df_comparativo['Score_Total_18_Pos'] - df_comparativo['Score_Total_18_Pre']
         criar_graficos_comparativos_pos(df_comparativo, pasta_graficos)
 

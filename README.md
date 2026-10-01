@@ -91,13 +91,16 @@ No inquérito, os alunos responderam a um controle deslizante (*slider*) avalian
 
 ## 🚀 5. Comparativo Pré vs Pós-teste (Momento 2)
 
-> [!NOTE]  
-> **Aguardando dados da 2ª Resposta (Pós-teste).**  
-> O pipeline está totalmente configurado. Assim que os participantes responderem ao segundo inquérito, basta exportar o arquivo ou adicionar o evento no REDCap e rodar o script:
-> ```bash
-> python analise_curso_pesquisa_clinica.py --pos ARQUIVO_POS_TESTE.csv
-> ```
-> O relatório gerará automaticamente os gráficos comparativos de evolução individual (Lollipop chart), ganho de aprendizado por competência e estatísticas de ganho pedagógico!
+### 🎉 Resultados Comparativos Consolidados!
+
+![Evolução por Questão](graficos/06_comparativo_pre_pos_questoes.png)
+
+![Evolução Individual](graficos/07_evolucao_individual_participantes.png)
+
+- **Média Pré-teste:** 9.53 pts (53.0%)  
+- **Média Pós-teste:** 11.20 pts (62.2%)  
+- **Evolução Média Absoluta:** **+1.67 pontos**  
+- **Ganho Normalizado de Hake (g):** **19.7%**  
 
 ---
 
