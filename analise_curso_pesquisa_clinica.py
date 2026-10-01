@@ -901,7 +901,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
   <div class="container">
     <header>
       <div class="header-titles">
-        <h1>Inquérito de Conhecimentos em Pesquisa Clínica <span style="background: rgba(56, 189, 248, 0.18); border: 1px solid #38bdf8; color: #38bdf8; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 20px; vertical-align: middle;">v1.5 • Atualizado</span></h1>
+        <h1>Inquérito de Conhecimentos em Pesquisa Clínica <span style="background: rgba(16, 185, 129, 0.2); border: 1px solid #10b981; color: #34d399; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 20px; vertical-align: middle;">v2.0 • Pós-teste Ativo</span></h1>
         <p>Curso de Capacitação CEPEM / FIOCRUZ • Análise Quantitativa e Diagnóstico Pedagógico</p>
       </div>
       
