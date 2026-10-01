@@ -617,6 +617,9 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Dashboard - Inquérito de Pesquisa Clínica</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -928,7 +931,6 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
       <a href="#bloco-radar">2. Radar nos 9 Domínios (Aranha)</a>
       <a href="#bloco-faixas">3. Perfil de Domínio da Turma</a>
       <a href="#bloco-slider">4. Autoavaliação vs Nota Real</a>
-      <a href="#bloco-tabela">5. Tabela de Alunos</a>
     </div>
 
     <div class="info-banner" id="infoBanner">
@@ -1064,8 +1066,8 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
       </div>
     </div>
 
-    <!-- Tabela Geral -->
-    <div id="bloco-tabela" class="table-card">
+    <!-- Tabela Geral (Oculta temporariamente a pedido) -->
+    <div id="bloco-tabela" class="table-card" style="display: none;">
       <div class="table-header">
         <div>
           <h3 id="tableTitle" style="font-size: 26px; font-weight: 800;">Desempenho Individual dos Participantes</h3>
@@ -1367,6 +1369,38 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
       }}
     }});
 
+    // Plugin para desenhar rótulos sobre os pontos de autoavaliação (mantendo anonimato)
+    const pluginScatterLabels = {{
+      id: 'pluginScatterLabels',
+      afterDatasetsDraw(chart) {{
+        if (chart.canvas.id !== 'chartSlider') return;
+        const {{ ctx }} = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || meta.hidden) return;
+
+        ctx.save();
+        meta.data.forEach((pt, index) => {{
+          const raw = chart.data.datasets[0].data[index];
+          if (!raw || raw.x === undefined || raw.y === undefined) return;
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+          ctx.shadowBlur = 6;
+          ctx.shadowOffsetY = 1;
+
+          if (typeof estadoBlocos !== 'undefined' && estadoBlocos.slider === 3) {{
+            ctx.fillText(`Pré: ${{Number(raw.x).toFixed(1)}} | Pós: ${{Number(raw.y).toFixed(1)}}`, pt.x, pt.y - 11);
+          }} else {{
+            ctx.fillText(`Autoav.: ${{Number(raw.x).toFixed(0)}} | Nota: ${{Number(raw.y).toFixed(1)}}`, pt.x, pt.y - 11);
+          }}
+        }});
+        ctx.restore();
+      }}
+    }};
+
     // 4. Chart Scatter Slider vs Nota Real
     const scatterDataM1 = dadosM1.alunos.filter(a => a.slider !== null).map(a => ({{ x: a.slider, y: a.nota }}));
     const chartSlider = new Chart(document.getElementById('chartSlider'), {{
@@ -1380,7 +1414,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
             borderColor: '#c084fc',
             borderWidth: 2,
             pointRadius: 9,
-            pointHoverRadius: 12
+            pointHoverRadius: 13
           }},
           {{
             type: 'line',
@@ -1394,6 +1428,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
           }}
         ]
       }},
+      plugins: [pluginScatterLabels],
       options: {{
         responsive: true,
         maintainAspectRatio: false,
@@ -1403,15 +1438,31 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
             titleFont: {{ size: 16 }},
             bodyFont: {{ size: 15 }},
             callbacks: {{
+              title: () => '',
               label: ctx => ctx.raw && ctx.raw.x !== undefined 
-                ? `Autoavaliação: ${{ctx.raw.x}}/10  |  Acerto Efetivo: ${{ctx.raw.y}}/10` 
+                ? `Autoavaliação Declarada: ${{ctx.raw.x}}/10  |  Nota Efetiva: ${{Number(ctx.raw.y).toFixed(1)}}/10` 
                 : ctx.dataset.label
             }}
           }}
         }},
         scales: {{
-          x: {{ min: 0, max: 10, title: {{ display: true, text: 'Autoavaliação Declarada no REDCap (0 a 10)', color: '#cbd5e1', font: {{ size: 15, weight: 'bold' }} }}, grid: {{ color: '#24344d' }}, ticks: {{ color: '#f8fafc', font: {{ size: 14, weight: '600' }} }} }},
-          y: {{ min: 0, max: 10, title: {{ display: true, text: 'Nota Efetiva Obtida no Teste (0 a 10)', color: '#cbd5e1', font: {{ size: 15, weight: 'bold' }} }}, grid: {{ color: '#24344d' }}, ticks: {{ color: '#f8fafc', font: {{ size: 14, weight: '600' }} }} }}
+          x: {{
+            type: 'linear',
+            position: 'bottom',
+            min: 0,
+            max: 10,
+            title: {{ display: true, text: 'Autoavaliação Declarada no REDCap (0 a 10)', color: '#cbd5e1', font: {{ size: 15, weight: 'bold' }} }},
+            grid: {{ color: '#24344d' }},
+            ticks: {{ color: '#f8fafc', font: {{ size: 14, weight: '600' }}, stepSize: 1 }}
+          }},
+          y: {{
+            type: 'linear',
+            min: 0,
+            max: 10,
+            title: {{ display: true, text: 'Nota Efetiva Obtida no Teste (0 a 10)', color: '#cbd5e1', font: {{ size: 15, weight: 'bold' }} }},
+            grid: {{ color: '#24344d' }},
+            ticks: {{ color: '#f8fafc', font: {{ size: 14, weight: '600' }}, stepSize: 1 }}
+          }}
         }}
       }}
     }});
@@ -1655,7 +1706,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
         chartSlider.options.scales.x.title.text = 'Autoavaliação Declarada no REDCap (0 a 10)';
         chartSlider.options.scales.y.title.text = 'Nota Efetiva Obtida no Teste (0 a 10)';
         chartSlider.options.plugins.tooltip.callbacks.label = ctx => ctx.raw && ctx.raw.x !== undefined 
-          ? `Autoavaliação: ${{ctx.raw.x}}/10  |  Acerto Efetivo: ${{ctx.raw.y}}/10` 
+          ? `Autoavaliação Declarada: ${{ctx.raw.x}}/10  |  Nota Efetiva: ${{Number(ctx.raw.y).toFixed(1)}}/10` 
           : ctx.dataset.label;
       }} else if (num === 2 && dadosM2) {{
         t.innerText = 'Autoavaliação Declarada vs Nota Efetiva — 2ª Resposta (Pós-teste)';
@@ -1668,7 +1719,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
         chartSlider.options.scales.x.title.text = 'Autoavaliação Declarada no REDCap (0 a 10)';
         chartSlider.options.scales.y.title.text = 'Nota Efetiva Obtida no Teste (0 a 10)';
         chartSlider.options.plugins.tooltip.callbacks.label = ctx => ctx.raw && ctx.raw.x !== undefined 
-          ? `Autoavaliação Pós: ${{ctx.raw.x}}/10  |  Acerto Efetivo: ${{ctx.raw.y}}/10` 
+          ? `Autoavaliação Pós: ${{ctx.raw.x}}/10  |  Nota Efetiva: ${{Number(ctx.raw.y).toFixed(1)}}/10` 
           : ctx.dataset.label;
       }} else if (num === 3 && dadosM3) {{
         t.innerText = 'Correlação de Evolução Individual: Nota Pré (Eixo X) vs Nota Pós (Eixo Y)';
@@ -1886,8 +1937,8 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
 
       atualizarHeaderEKpis(num);
 
-      // Sincroniza todos os blocos individuais
-      ['barras', 'radar', 'faixas', 'slider', 'tabela'].forEach(tipo => {{
+      // Sincroniza todos os blocos individuais visíveis
+      ['barras', 'radar', 'faixas', 'slider'].forEach(tipo => {{
         mudarMomentoBloco(tipo, num);
       }});
     }}
