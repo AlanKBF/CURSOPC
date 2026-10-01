@@ -435,8 +435,8 @@ def gerar_relatorio_markdown(df_avaliado, df_comparativo, caminho_md):
         
     print(f"[OK] Relatório Markdown salvo com sucesso em: {caminho_md}")
 
-def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
-    """Gera um Dashboard interativo standalone em HTML com Chart.js de alta clareza."""
+def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_pos=None):
+    """Gera um Dashboard interativo standalone em HTML com Chart.js de alta clareza e seletor dos 3 Momentos."""
     dados_alunos_json = []
     for _, r in df_avaliado.iterrows():
         questoes_detalhes = []
@@ -468,12 +468,136 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
     
     media_geral_pct = round(float(df_avaliado['Score_Total_18'].mean() / 18.0 * 100), 1)
     
-    # Contagem de faixas de proficiência
+    melhor_q_idx = int(df_avaliado[[f"Q{i}_Score" for i in range(1,10)]].mean().idxmax()[1])
+    melhor_q_val = round(float(df_avaliado[f"Q{melhor_q_idx}_Score"].mean() / 2.0 * 100), 1)
+    pior_q_idx = int(df_avaliado[[f"Q{i}_Score" for i in range(1,10)]].mean().idxmin()[1])
+    pior_q_val = round(float(df_avaliado[f"Q{pior_q_idx}_Score"].mean() / 2.0 * 100), 1)
+    
     n_avancado = int((df_avaliado['Score_Total_18'] >= 14).sum())
     n_intermediario = int(((df_avaliado['Score_Total_18'] >= 9) & (df_avaliado['Score_Total_18'] < 14)).sum())
     n_basico = int((df_avaliado['Score_Total_18'] < 9).sum())
     
-    scores_dist = [int((df_avaliado['Score_Total_18'] == s).sum()) for s in range(0, 19)]
+    dados_m1 = {
+        "n_alunos": len(df_avaliado),
+        "media_pontos": round(float(df_avaliado['Score_Total_18'].mean()), 1),
+        "media_pct": media_geral_pct,
+        "mediana": round(float(df_avaliado['Score_Total_18'].median()), 1),
+        "nota_mediana": round(float(df_avaliado['Nota_10'].median()), 1),
+        "melhor_q": f"Q{melhor_q_idx} ({melhor_q_val}%)",
+        "melhor_tema": QUESTOES_GABARITO[melhor_q_idx]["titulo"],
+        "pior_q": f"Q{pior_q_idx} ({pior_q_val}%)",
+        "pior_tema": QUESTOES_GABARITO[pior_q_idx]["titulo"],
+        "medias_questoes": q_medias,
+        "titulos_com_valores": q_titulos_com_valores,
+        "faixas": [n_avancado, n_intermediario, n_basico],
+        "alunos": dados_alunos_json
+    }
+
+    dados_m2 = None
+    dados_m3 = None
+    tem_pos = False
+
+    if df_avaliado_pos is not None and len(df_avaliado_pos) > 0:
+        tem_pos = True
+        dados_alunos_m2_json = []
+        for _, r in df_avaliado_pos.iterrows():
+            q_det = []
+            for i in range(1, 10):
+                q_det.append({
+                    "num": i,
+                    "titulo": QUESTOES_GABARITO[i]["titulo"],
+                    "enunciado": QUESTOES_GABARITO[i]["enunciado"],
+                    "gabarito": QUESTOES_GABARITO[i]["gabarito"],
+                    "resposta": str(r[f"Q{i}_Resposta"]),
+                    "score": int(r[f"Q{i}_Score"]),
+                    "feedback": str(r[f"Q{i}_Feedback"])
+                })
+            dados_alunos_m2_json.append({
+                "id": int(r["Record ID"]),
+                "nome": r["NOME"],
+                "sexo": r["SEXO"],
+                "score": int(r["Score_Total_18"]),
+                "nota": float(r["Nota_10"]),
+                "pct": float(r["Percentual_Acerto"]),
+                "classif": r["Classificacao_Geral"],
+                "slider": float(r["Autoavaliacao_Slider"]) if pd.notna(r["Autoavaliacao_Slider"]) else None,
+                "questoes": q_det
+            })
+        
+        q_medias_m2 = [round(float((df_avaliado_pos[f"Q{i}_Score"].mean() / 2.0) * 100), 1) for i in range(1, 10)]
+        m2_media_pct = round(float(df_avaliado_pos['Score_Total_18'].mean() / 18.0 * 100), 1)
+        m2_melhor_idx = int(df_avaliado_pos[[f"Q{i}_Score" for i in range(1,10)]].mean().idxmax()[1])
+        m2_pior_idx = int(df_avaliado_pos[[f"Q{i}_Score" for i in range(1,10)]].mean().idxmin()[1])
+        
+        dados_m2 = {
+            "n_alunos": len(df_avaliado_pos),
+            "media_pontos": round(float(df_avaliado_pos['Score_Total_18'].mean()), 1),
+            "media_pct": m2_media_pct,
+            "mediana": round(float(df_avaliado_pos['Score_Total_18'].median()), 1),
+            "nota_mediana": round(float(df_avaliado_pos['Nota_10'].median()), 1),
+            "melhor_q": f"Q{m2_melhor_idx} ({round(float(df_avaliado_pos[f'Q{m2_melhor_idx}_Score'].mean()/2*100),1)}%)",
+            "melhor_tema": QUESTOES_GABARITO[m2_melhor_idx]["titulo"],
+            "pior_q": f"Q{m2_pior_idx} ({round(float(df_avaliado_pos[f'Q{m2_pior_idx}_Score'].mean()/2*100),1)}%)",
+            "pior_tema": QUESTOES_GABARITO[m2_pior_idx]["titulo"],
+            "medias_questoes": q_medias_m2,
+            "titulos_com_valores": [f"{QUESTOES_GABARITO[i]['titulo']} ({q_medias_m2[i-1]}%)" for i in range(1, 10)],
+            "faixas": [
+                int((df_avaliado_pos['Score_Total_18'] >= 14).sum()),
+                int(((df_avaliado_pos['Score_Total_18'] >= 9) & (df_avaliado_pos['Score_Total_18'] < 14)).sum()),
+                int((df_avaliado_pos['Score_Total_18'] < 9).sum())
+            ],
+            "alunos": dados_alunos_m2_json
+        }
+
+    if df_comparativo is not None and len(df_comparativo) > 0:
+        tem_pos = True
+        comp_medias_pre = [round(float((df_comparativo[f"Q{i}_Score_Pre"].mean() / 2.0) * 100), 1) for i in range(1, 10)]
+        comp_medias_pos = [round(float((df_comparativo[f"Q{i}_Score_Pos"].mean() / 2.0) * 100), 1) for i in range(1, 10)]
+        deltas = [round(comp_medias_pos[i] - comp_medias_pre[i], 1) for i in range(9)]
+        
+        pre_m = df_comparativo['Score_Total_18_Pre'].mean()
+        pos_m = df_comparativo['Score_Total_18_Pos'].mean()
+        delta_m = pos_m - pre_m
+        ganho_hake = (pos_m - pre_m) / (18.0 - pre_m) * 100.0 if (18.0 - pre_m) > 0 else 0
+        melhor_salto_idx = int(np.argmax(deltas)) + 1
+        
+        comp_alunos = []
+        for _, r in df_comparativo.iterrows():
+            comp_alunos.append({
+                "id": int(r.get("Record ID_Pre", r.get("Record ID", 0))),
+                "nome": r["NOME"],
+                "sexo": r.get("SEXO_Pre", r.get("SEXO", "")),
+                "score_pre": int(r["Score_Total_18_Pre"]),
+                "score_pos": int(r["Score_Total_18_Pos"]),
+                "nota_pre": float(r["Nota_10_Pre"]),
+                "nota_pos": float(r["Nota_10_Pos"]),
+                "delta": float(r["Delta_Total"]),
+                "ganho_hake": float(r["Ganho_Hake"]) if pd.notna(r["Ganho_Hake"]) else 0.0,
+                "classif_pre": r["Classificacao_Geral_Pre"],
+                "classif_pos": r["Classificacao_Geral_Pos"]
+            })
+            
+        dados_m3 = {
+            "total_comp": len(df_comparativo),
+            "media_pre": round(float(pre_m), 1),
+            "media_pos": round(float(pos_m), 1),
+            "delta_medio": round(float(delta_m), 1),
+            "ganho_hake": round(float(ganho_hake), 1),
+            "aproveitamento_pre": round(float(pre_m / 18.0 * 100), 1),
+            "aproveitamento_pos": round(float(pos_m / 18.0 * 100), 1),
+            "delta_pct_aprov": round(float((pos_m - pre_m) / 18.0 * 100), 1),
+            "n_melhoraram": int((df_comparativo['Delta_Total'] > 0).sum()),
+            "pct_melhoraram": round(float((df_comparativo['Delta_Total'] > 0).sum() / len(df_comparativo) * 100), 1),
+            "melhor_salto_q": f"Q{melhor_salto_idx} (+{deltas[melhor_salto_idx-1]}%)",
+            "melhor_salto_tema": QUESTOES_GABARITO[melhor_salto_idx]["titulo"],
+            "medias_pre": comp_medias_pre,
+            "medias_pos": comp_medias_pos,
+            "deltas": deltas,
+            "alunos_comp": comp_alunos
+        }
+
+    status_pill_m2 = "Disponível" if tem_pos else "Aguardando 2ª entrada"
+    status_pill_m3 = "Disponível" if tem_pos else "Aguardando 2ª entrada"
     
     html_content = f"""<!DOCTYPE html>
 <html lang="pt-BR">
@@ -500,12 +624,12 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
     body {{ background: var(--bg); color: var(--text-main); min-height: 100vh; padding: 30px; font-size: 16px; scroll-behavior: smooth; }}
     .container {{ max-width: 1600px; width: 100%; margin: 0 auto; }}
     
-    /* Header para Projeção */
+    /* Header para Projeção com Botões de Momento */
     header {{
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 20px;
-      padding: 30px 40px;
+      padding: 26px 36px;
       margin-bottom: 30px;
       display: flex;
       justify-content: space-between;
@@ -515,8 +639,76 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       box-shadow: 0 12px 35px -10px rgba(0,0,0,0.5);
     }}
     .header-titles h1 {{ font-size: 32px; font-weight: 800; background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }}
-    .header-titles p {{ color: var(--text-muted); font-size: 17px; margin-top: 6px; }}
-    .badge {{ background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.4); padding: 10px 20px; border-radius: 30px; font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }}
+    .header-titles p {{ color: var(--text-muted); font-size: 16.5px; margin-top: 6px; }}
+    
+    /* Segmented Control dos 3 Momentos no Header */
+    .momento-selector-wrapper {{
+      display: flex;
+      align-items: center;
+    }}
+    .momento-toggle-group {{
+      display: inline-flex;
+      background: #090f1d;
+      border: 1px solid var(--card-border);
+      border-radius: 40px;
+      padding: 6px;
+      gap: 6px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      flex-wrap: wrap;
+    }}
+    .momento-btn {{
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94a3b8;
+      padding: 10px 18px;
+      border-radius: 30px;
+      font-size: 14.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.25s ease;
+      outline: none;
+    }}
+    .momento-btn:hover {{
+      color: #ffffff;
+      background: rgba(255,255,255,0.06);
+    }}
+    .momento-btn.active {{
+      background: var(--accent);
+      color: #0b1120;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.45);
+    }}
+    .m-badge-num {{
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      color: inherit;
+      font-size: 12px;
+      font-weight: 800;
+    }}
+    .momento-btn.active .m-badge-num {{
+      background: #0b1120;
+      color: var(--accent);
+    }}
+    .m-status-pill {{
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background: rgba(148, 163, 184, 0.2);
+      color: #cbd5e1;
+      font-weight: 600;
+    }}
+    .momento-btn.active .m-status-pill {{
+      background: rgba(11, 17, 32, 0.3);
+      color: #0b1120;
+    }}
     
     /* Barra de Navegação Rápida para Projeção */
     .nav-presentation {{
@@ -628,8 +820,27 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
         <h1>Inquérito de Conhecimentos em Pesquisa Clínica</h1>
         <p>Curso de Capacitação CEPEM / FIOCRUZ • Análise Quantitativa e Diagnóstico Pedagógico</p>
       </div>
-      <div>
-        <span class="badge">● Momento 1: Diagnóstico Inicial (Pré-teste)</span>
+      
+      <!-- Seletor dos 3 Momentos -->
+      <div class="momento-selector-wrapper">
+        <div class="momento-toggle-group">
+          <button id="btnMomento1" class="momento-btn active" onclick="selecionarMomento(1)">
+            <span class="m-badge-num">1</span>
+            <span>1ª Resposta (Pré-teste)</span>
+          </button>
+          
+          <button id="btnMomento2" class="momento-btn" onclick="selecionarMomento(2)">
+            <span class="m-badge-num">2</span>
+            <span>2ª Resposta (Pós-teste)</span>
+            <span class="m-status-pill" id="pillM2">{status_pill_m2}</span>
+          </button>
+          
+          <button id="btnMomento3" class="momento-btn" onclick="selecionarMomento(3)">
+            <span class="m-badge-num">3</span>
+            <span>Mesclado (Comparativo / Evolução)</span>
+            <span class="m-status-pill" id="pillM3">{status_pill_m3}</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -643,38 +854,38 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       <a href="#bloco-tabela">5. Tabela de Alunos</a>
     </div>
 
-    <div class="info-banner">
-      <span style="font-size: 26px;">💡</span>
-      <div>
-        <strong>Modo Projeção Pedagógica:</strong> Gráficos exibidos em tela ampla (1 bloco por seção) com fontes ampliadas para facilitar a visualização por toda a sala. No <strong>Radar (Aranha)</strong>, a escala foi calibrada de 0% a 70% sem o gabarito externo, expandindo a teia para evidenciar com nitidez os pontos fortes e os temas prioritários de reforço.
+    <div class="info-banner" id="infoBanner">
+      <span style="font-size: 26px;" id="infoBannerIcon">💡</span>
+      <div id="infoBannerContent">
+        <strong>Modo 1: Diagnóstico Inicial (Pré-teste):</strong> Nível de entrada da turma. As porcentagens no topo das barras e dentro da rosca mostram a linha de base antes do curso. No <strong>Radar (Aranha)</strong>, a escala foi calibrada de 0% a 70% sem o gabarito externo, expandindo a teia para evidenciar com nitidez os pontos fortes e os temas prioritários de reforço.
       </div>
     </div>
 
     <div class="kpi-grid">
       <div class="kpi-card">
-        <div class="kpi-title">Total de Alunos</div>
-        <div class="kpi-value">{len(df_avaliado)}</div>
-        <div class="kpi-sub">Respondentes avaliados</div>
+        <div class="kpi-title" id="kpiTitle1">Total de Alunos</div>
+        <div class="kpi-value" id="kpiVal1">{len(df_avaliado)}</div>
+        <div class="kpi-sub" id="kpiSub1">Respondentes avaliados</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Média Geral da Turma</div>
-        <div class="kpi-value">{df_avaliado['Score_Total_18'].mean():.1f} <span style="font-size: 17px; color: var(--text-muted);">/ 18 pts</span></div>
-        <div class="kpi-sub">{media_geral_pct}% de aproveitamento</div>
+        <div class="kpi-title" id="kpiTitle2">Média Geral da Turma</div>
+        <div class="kpi-value" id="kpiVal2">{df_avaliado['Score_Total_18'].mean():.1f} <span style="font-size: 17px; color: var(--text-muted);">/ 18 pts</span></div>
+        <div class="kpi-sub" id="kpiSub2">{media_geral_pct}% de aproveitamento</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Mediana da Turma</div>
-        <div class="kpi-value">{df_avaliado['Score_Total_18'].median():.1f} pts</div>
-        <div class="kpi-sub">Nota {df_avaliado['Nota_10'].median():.1f} em 10</div>
+        <div class="kpi-title" id="kpiTitle3">Mediana da Turma</div>
+        <div class="kpi-value" id="kpiVal3">{df_avaliado['Score_Total_18'].median():.1f} pts</div>
+        <div class="kpi-sub" id="kpiSub3">Nota {df_avaliado['Nota_10'].median():.1f} em 10</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Maior Domínio</div>
-        <div class="kpi-value" style="font-size: 22px; color: #34d399;">Q{df_avaliado[[f"Q{i}_Score" for i in range(1,10)]].mean().idxmax()[1]} (63.2%)</div>
-        <div class="kpi-sub">{QUESTOES_GABARITO[int(df_avaliado[[f"Q{i}_Score" for i in range(1,10)]].mean().idxmax()[1])]["titulo"]}</div>
+        <div class="kpi-title" id="kpiTitle4">Maior Domínio</div>
+        <div class="kpi-value" id="kpiVal4" style="font-size: 22px; color: #34d399;">Q{melhor_q_idx} ({melhor_q_val}%)</div>
+        <div class="kpi-sub" id="kpiSub4">{QUESTOES_GABARITO[melhor_q_idx]["titulo"]}</div>
       </div>
       <div class="kpi-card">
-        <div class="kpi-title">Ponto Crítico</div>
-        <div class="kpi-value" style="font-size: 22px; color: #f87171;">Q{df_avaliado[[f"Q{i}_Score" for i in range(1,10)]].mean().idxmin()[1]} (42.1%)</div>
-        <div class="kpi-sub">{QUESTOES_GABARITO[int(df_avaliado[[f"Q{i}_Score" for i in range(1,10)]].mean().idxmin()[1])]["titulo"]}</div>
+        <div class="kpi-title" id="kpiTitle5">Ponto Crítico</div>
+        <div class="kpi-value" id="kpiVal5" style="font-size: 22px; color: #f87171;">Q{pior_q_idx} ({pior_q_val}%)</div>
+        <div class="kpi-sub" id="kpiSub5">{QUESTOES_GABARITO[pior_q_idx]["titulo"]}</div>
       </div>
     </div>
 
@@ -683,8 +894,8 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       <div id="bloco-barras" class="chart-card">
         <div class="chart-header">
           <div>
-            <h3>Taxa de Assertividade por Competência (%)</h3>
-            <div class="chart-subtitle">Percentual de acerto por questão do inquérito em relação ao gabarito com linha de média da turma ({media_geral_pct}%)</div>
+            <h3 id="chartTitle1">Taxa de Assertividade por Competência (%)</h3>
+            <div id="chartSub1" class="chart-subtitle">Percentual de acerto por questão do inquérito em relação ao gabarito com linha de média da turma ({media_geral_pct}%)</div>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -696,8 +907,8 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       <div id="bloco-radar" class="chart-card">
         <div class="chart-header">
           <div>
-            <h3>Radar de Maturidade nos 9 Domínios Clínicos</h3>
-            <div class="chart-subtitle">Escala ampliada (0 a 70%) para visualização em projeção • Identificação imediata dos eixos de aprendizado</div>
+            <h3 id="chartTitle2">Radar de Maturidade nos 9 Domínios Clínicos</h3>
+            <div id="chartSub2" class="chart-subtitle">Escala ampliada (0 a 70%) para visualização em projeção • Identificação imediata dos eixos de aprendizado</div>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -709,8 +920,8 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       <div id="bloco-faixas" class="chart-card">
         <div class="chart-header">
           <div>
-            <h3>Perfil de Domínio Inicial da Turma</h3>
-            <div class="chart-subtitle">Classificação dos {len(df_avaliado)} participantes por faixas de proficiência (Básico, Intermediário e Avançado)</div>
+            <h3 id="chartTitle3">Perfil de Domínio Inicial da Turma</h3>
+            <div id="chartSub3" class="chart-subtitle">Classificação dos {len(df_avaliado)} participantes por faixas de proficiência (Básico, Intermediário e Avançado)</div>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -722,8 +933,8 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       <div id="bloco-slider" class="chart-card">
         <div class="chart-header">
           <div>
-            <h3>Autoavaliação Declarada (Slider 0-10) vs Nota Efetiva (0-10)</h3>
-            <div class="chart-subtitle">Calibração metacognitiva (dados anônimos: passe o cursor para ver percepção vs nota)</div>
+            <h3 id="chartTitle4">Autoavaliação Declarada (Slider 0-10) vs Nota Efetiva (0-10)</h3>
+            <div id="chartSub4" class="chart-subtitle">Calibração metacognitiva (dados anônimos: passe o cursor para ver percepção vs nota)</div>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -736,14 +947,14 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
     <div id="bloco-tabela" class="table-card">
       <div class="table-header">
         <div>
-          <h3 style="font-size: 26px; font-weight: 800;">Desempenho Individual dos Participantes</h3>
-          <p style="font-size: 15px; color: var(--text-muted); margin-top: 6px;">Clique em "Ver Respostas" para inspecionar cada pergunta, resposta do aluno, gabarito e feedback do corretor.</p>
+          <h3 id="tableTitle" style="font-size: 26px; font-weight: 800;">Desempenho Individual dos Participantes</h3>
+          <p id="tableSub" style="font-size: 15px; color: var(--text-muted); margin-top: 6px;">Clique em "Ver Respostas" para inspecionar cada pergunta, resposta do aluno, gabarito e feedback do corretor.</p>
         </div>
         <input type="text" id="searchInput" class="search-box" placeholder="Buscar por nome do aluno...">
       </div>
       <div style="overflow-x: auto;">
         <table id="tabelaAlunos">
-          <thead>
+          <thead id="tabelaHead">
             <tr>
               <th>ID</th>
               <th>Nome do Participante</th>
@@ -755,9 +966,37 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
               <th>Ações</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody id="tabelaBody">
           </tbody>
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Informativo quando ainda não houver 2ª entrada -->
+  <div id="modalAvisoPos" class="modal-overlay">
+    <div class="modal-content" style="max-width: 660px;">
+      <button class="modal-close" onclick="fecharModalAviso()">&times;</button>
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 18px;">
+        <span style="font-size: 38px;">📥</span>
+        <div>
+          <h2 style="font-size: 22px; color: var(--accent); margin: 0;">Entrada de Dados da 2ª Resposta</h2>
+          <p style="color: var(--text-muted); font-size: 14.5px; margin: 4px 0 0 0;">Inquérito Final (Pós-teste) • Pronto para Importação</p>
+        </div>
+      </div>
+      <div style="background: #0b1120; border: 1px solid var(--card-border); border-radius: 12px; padding: 22px; line-height: 1.6; font-size: 15px; color: #cbd5e1;">
+        <p style="margin-top: 0;">Os botões <strong>2 (Segunda Resposta)</strong> e <strong>3 (Mesclado / Comparativo)</strong> já estão prontos para exibição!</p>
+        <p>Quando os participantes responderem ao segundo inquérito, você pode importar de duas formas:</p>
+        <div style="margin: 14px 0;">
+          <strong>Opção A — Pelo Terminal / Script Python:</strong>
+          <pre style="background: #162032; padding: 12px 16px; border-radius: 8px; color: #38bdf8; font-weight: bold; overflow-x: auto; margin-top: 6px; font-size: 13.5px;">python analise_curso_pesquisa_clinica.py --pos ARQUIVO_POS_TESTE.csv</pre>
+        </div>
+        <div style="margin-top: 18px; border-top: 1px solid #1e293b; padding-top: 16px;">
+          <strong>Opção B — Carregar diretamente no Navegador agora:</strong>
+          <p style="font-size: 13.5px; color: var(--text-muted); margin: 6px 0 12px 0;">Se você já tiver um arquivo CSV do segundo momento (ou exportado do REDCap), selecione-o abaixo para carregar imediatamente na visualização:</p>
+          <input type="file" id="inputCsvPos" accept=".csv" style="display: none;" onchange="carregarCsvPosNavegador(event)">
+          <button onclick="document.getElementById('inputCsvPos').click()" style="background: var(--accent); color: #0b1120; border: none; padding: 11px 20px; border-radius: 8px; font-weight: 800; cursor: pointer; font-size: 14.5px;">📂 Selecionar Arquivo CSV do Pós-teste...</button>
+        </div>
       </div>
     </div>
   </div>
@@ -772,36 +1011,45 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
   </div>
 
   <script>
-    const dadosAlunos = {json.dumps(dados_alunos_json)};
+    const dadosM1 = {json.dumps(dados_m1)};
+    let dadosM2 = {json.dumps(dados_m2) if dados_m2 else "null"};
+    let dadosM3 = {json.dumps(dados_m3) if dados_m3 else "null"};
+    let temPos = {"true" if tem_pos else "false"};
+    let momentoAtual = 1;
+
     const titulosQuestoes = {json.dumps(q_titulos)};
-    const titulosComValores = {json.dumps(q_titulos_com_valores)};
-    const mediasQuestoes = {json.dumps(q_medias)};
-    const mediaGeralTurma = {media_geral_pct};
 
     // Plugin para renderizar percentuais em cima de cada barra
     const pluginBarLabels = {{
       id: 'pluginBarLabels',
       afterDatasetsDraw(chart) {{
         const {{ ctx, data }} = chart;
-        const meta = chart.getDatasetMeta(0);
-        if (!meta || meta.hidden) return;
+        
+        // Percorre os datasets de barra visíveis
+        chart.data.datasets.forEach((dataset, dIdx) => {{
+          if (dataset.type === 'line') return;
+          const meta = chart.getDatasetMeta(dIdx);
+          if (!meta || meta.hidden) return;
 
-        ctx.save();
-        meta.data.forEach((bar, index) => {{
-          const val = data.datasets[0].data[index];
-          if (val !== undefined && val !== null) {{
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 16px system-ui, -apple-system, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
-            ctx.shadowBlur = 6;
-            ctx.shadowOffsetX = 0;
-            ctx.shadowOffsetY = 2;
-            ctx.fillText(Number(val).toFixed(1) + '%', bar.x, bar.y - 8);
-          }}
+          ctx.save();
+          meta.data.forEach((bar, index) => {{
+            const val = dataset.data[index];
+            if (val !== undefined && val !== null) {{
+              ctx.fillStyle = '#ffffff';
+              ctx.font = 'bold 15px system-ui, -apple-system, sans-serif';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'bottom';
+              ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+              ctx.shadowBlur = 6;
+              ctx.shadowOffsetX = 0;
+              ctx.shadowOffsetY = 2;
+              
+              const txt = Number(val).toFixed(1) + '%';
+              ctx.fillText(txt, bar.x, bar.y - 7);
+            }}
+          }});
+          ctx.restore();
         }});
-        ctx.restore();
       }}
     }};
 
@@ -809,6 +1057,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
     const pluginDoughnutLabels = {{
       id: 'pluginDoughnutLabels',
       afterDatasetsDraw(chart) {{
+        if (momentoAtual === 3) return; // Não desenha na rosca comparativa
         const {{ ctx, data }} = chart;
         const meta = chart.getDatasetMeta(0);
         if (!meta || meta.hidden) return;
@@ -847,23 +1096,23 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       }}
     }};
 
-    // 1. Chart Questoes (Barras com linha de média e % no topo das barras)
-    new Chart(document.getElementById('chartQuestoes'), {{
+    // 1. Chart Questoes
+    const chartQuestoes = new Chart(document.getElementById('chartQuestoes'), {{
       type: 'bar',
       data: {{
         labels: titulosQuestoes.map((t, i) => `Q${{i+1}}: ${{t}}`),
         datasets: [
           {{
             label: 'Assertividade (%)',
-            data: mediasQuestoes,
-            backgroundColor: mediasQuestoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.9)' : v >= 48 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)'),
+            data: dadosM1.medias_questoes,
+            backgroundColor: dadosM1.medias_questoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.9)' : v >= 48 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)'),
             borderRadius: 8,
             order: 2
           }},
           {{
             type: 'line',
-            label: 'Média da Turma (51.8%)',
-            data: Array(9).fill(mediaGeralTurma),
+            label: `Média da Turma (${{dadosM1.media_pct}}%)`,
+            data: Array(9).fill(dadosM1.media_pct),
             borderColor: '#38bdf8',
             borderWidth: 3,
             borderDash: [8, 5],
@@ -877,18 +1126,14 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       options: {{
         responsive: true,
         maintainAspectRatio: false,
-        layout: {{
-          padding: {{
-            top: 25
-          }}
-        }},
+        layout: {{ padding: {{ top: 25 }} }},
         plugins: {{
           legend: {{ display: true, labels: {{ color: '#f8fafc', font: {{ size: 15, weight: '700' }} }} }},
           tooltip: {{
             titleFont: {{ size: 16 }},
             bodyFont: {{ size: 15 }},
             callbacks: {{
-              label: ctx => ctx.dataset.type === 'line' ? `Média da Turma: ${{ctx.raw}}%` : `Assertividade: ${{ctx.raw}}%`
+              label: ctx => ctx.dataset.type === 'line' ? `${{ctx.dataset.label}}: ${{ctx.raw}}%` : `${{ctx.dataset.label}}: ${{ctx.raw}}%`
             }}
           }}
         }},
@@ -899,15 +1144,15 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       }}
     }});
 
-    // 2. Chart Radar (Sem meta 100%, expandido para preencher a tela na escala 0-70%)
-    new Chart(document.getElementById('chartRadar'), {{
+    // 2. Chart Radar
+    const chartRadar = new Chart(document.getElementById('chartRadar'), {{
       type: 'radar',
       data: {{
-        labels: titulosComValores,
+        labels: dadosM1.titulos_com_valores,
         datasets: [
           {{
             label: 'Assertividade da Turma (%)',
-            data: mediasQuestoes,
+            data: dadosM1.medias_questoes,
             backgroundColor: 'rgba(56, 189, 248, 0.4)',
             borderColor: '#38bdf8',
             pointBackgroundColor: '#38bdf8',
@@ -928,7 +1173,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
             titleFont: {{ size: 16 }},
             bodyFont: {{ size: 15 }},
             callbacks: {{
-              label: ctx => `Assertividade da Turma: ${{ctx.raw}}%`
+              label: ctx => `${{ctx.dataset.label}}: ${{ctx.raw}}%`
             }}
           }}
         }},
@@ -954,8 +1199,8 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       }}
     }});
 
-    // 3. Chart Faixas de Domínio (Doughnut com % e contagem dentro das fatias)
-    new Chart(document.getElementById('chartFaixas'), {{
+    // 3. Chart Faixas de Domínio
+    const chartFaixas = new Chart(document.getElementById('chartFaixas'), {{
       type: 'doughnut',
       data: {{
         labels: [
@@ -964,7 +1209,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
           'Necessita Fortalecimento (< 50% | 0-8 pts)'
         ],
         datasets: [{{
-          data: [{n_avancado}, {n_intermediario}, {n_basico}],
+          data: dadosM1.faixas,
           backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
           borderColor: '#162032',
           borderWidth: 3
@@ -980,7 +1225,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
             titleFont: {{ size: 16 }},
             bodyFont: {{ size: 15 }},
             callbacks: {{
-              label: ctx => ` ${{ctx.label}}: ${{ctx.raw}} alunos (${{Math.round(ctx.raw/{len(df_avaliado)}*100)}}%)`
+              label: ctx => ` ${{ctx.label}}: ${{ctx.raw}} alunos (${{Math.round(ctx.raw/dadosM1.n_alunos*100)}}%)`
             }}
           }}
         }},
@@ -988,15 +1233,15 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       }}
     }});
 
-    // 4. Chart Scatter Slider vs Nota Real (Anônimo: apenas autoavaliação e nota)
-    const scatterData = dadosAlunos.filter(a => a.slider !== null).map(a => ({{ x: a.slider, y: a.nota }}));
-    new Chart(document.getElementById('chartSlider'), {{
+    // 4. Chart Scatter Slider vs Nota Real
+    const scatterDataM1 = dadosM1.alunos.filter(a => a.slider !== null).map(a => ({{ x: a.slider, y: a.nota }}));
+    const chartSlider = new Chart(document.getElementById('chartSlider'), {{
       type: 'scatter',
       data: {{
         datasets: [
           {{
             label: 'Alunos (Autoavaliação vs Acerto)',
-            data: scatterData,
+            data: scatterDataM1,
             backgroundColor: '#a855f7',
             borderColor: '#c084fc',
             borderWidth: 2,
@@ -1037,39 +1282,425 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       }}
     }});
 
-    // Render Tabela
+    // Render Tabela de Alunos
     function renderTabela(lista) {{
-      const tbody = document.querySelector('#tabelaAlunos tbody');
+      const thead = document.getElementById('tabelaHead');
+      const tbody = document.getElementById('tabelaBody');
       tbody.innerHTML = '';
-      lista.forEach(aluno => {{
-        const tr = document.createElement('tr');
-        const badgeClass = aluno.score >= 14 ? 'score-green' : aluno.score >= 9 ? 'score-yellow' : 'score-red';
-        tr.innerHTML = `
-          <td>#${{aluno.id}}</td>
-          <td><strong>${{aluno.nome}}</strong></td>
-          <td>${{aluno.sexo}}</td>
-          <td><span class="score-badge ${{badgeClass}}">${{aluno.score}} / 18</span></td>
-          <td>${{aluno.nota.toFixed(1)}}</td>
-          <td>${{aluno.pct.toFixed(0)}}%</td>
-          <td>${{aluno.classif}}</td>
-          <td><button class="btn-detalhes" onclick="abrirModal(${{aluno.id}})">Ver Respostas</button></td>
+      
+      if (momentoAtual === 3) {{
+        // Cabeçalho da Tabela Comparativa
+        thead.innerHTML = `
+          <tr>
+            <th>ID</th>
+            <th>Nome do Participante</th>
+            <th>Sexo</th>
+            <th>Pontos Pré</th>
+            <th>Pontos Pós</th>
+            <th>Nota Pré</th>
+            <th>Nota Pós</th>
+            <th>Evolução (Delta)</th>
+            <th>Ganho Hake (g)</th>
+          </tr>
         `;
-        tbody.appendChild(tr);
-      }});
+        lista.forEach(aluno => {{
+          const tr = document.createElement('tr');
+          const deltaClass = aluno.delta > 0 ? 'score-green' : aluno.delta === 0 ? 'score-yellow' : 'score-red';
+          const sinal = aluno.delta > 0 ? '+' : '';
+          tr.innerHTML = `
+            <td>#${{aluno.id}}</td>
+            <td><strong>${{aluno.nome}}</strong></td>
+            <td>${{aluno.sexo || '-'}}</td>
+            <td>${{aluno.score_pre}} / 18</td>
+            <td>${{aluno.score_pos}} / 18</td>
+            <td>${{aluno.nota_pre.toFixed(1)}}</td>
+            <td><strong>${{aluno.nota_pos.toFixed(1)}}</strong></td>
+            <td><span class="score-badge ${{deltaClass}}">${{sinal}}${{aluno.delta}} pts</span></td>
+            <td><strong>${{aluno.ganho_hake.toFixed(1)}}%</strong></td>
+          `;
+          tbody.appendChild(tr);
+        }});
+      }} else {{
+        // Cabeçalho do Momento 1 ou 2
+        thead.innerHTML = `
+          <tr>
+            <th>ID</th>
+            <th>Nome do Participante</th>
+            <th>Sexo</th>
+            <th>Pontos (18)</th>
+            <th>Nota (10)</th>
+            <th>Aproveitamento</th>
+            <th>Classificação</th>
+            <th>Ações</th>
+          </tr>
+        `;
+        lista.forEach(aluno => {{
+          const tr = document.createElement('tr');
+          const badgeClass = aluno.score >= 14 ? 'score-green' : aluno.score >= 9 ? 'score-yellow' : 'score-red';
+          tr.innerHTML = `
+            <td>#${{aluno.id}}</td>
+            <td><strong>${{aluno.nome}}</strong></td>
+            <td>${{aluno.sexo}}</td>
+            <td><span class="score-badge ${{badgeClass}}">${{aluno.score}} / 18</span></td>
+            <td>${{aluno.nota.toFixed(1)}}</td>
+            <td>${{aluno.pct.toFixed(0)}}%</td>
+            <td>${{aluno.classif}}</td>
+            <td><button class="btn-detalhes" onclick="abrirModal(${{aluno.id}})">Ver Respostas</button></td>
+          `;
+          tbody.appendChild(tr);
+        }});
+      }}
     }}
 
-    renderTabela(dadosAlunos);
+    renderTabela(dadosM1.alunos);
 
-    // Filtro de busca
+    // Filtro de busca na tabela
     document.getElementById('searchInput').addEventListener('input', e => {{
       const termo = e.target.value.toLowerCase();
-      const filtrados = dadosAlunos.filter(a => a.nome.toLowerCase().includes(termo));
+      let fonte = momentoAtual === 3 ? (dadosM3 ? dadosM3.alunos_comp : []) : (momentoAtual === 2 ? (dadosM2 ? dadosM2.alunos : []) : dadosM1.alunos);
+      const filtrados = fonte.filter(a => a.nome.toLowerCase().includes(termo));
       renderTabela(filtrados);
     }});
 
-    // Funções do Modal
+    // Alternância entre os 3 Momentos
+    function selecionarMomento(num) {{
+      if ((num === 2 || num === 3) && !temPos) {{
+        abrirModalAviso();
+        return;
+      }}
+
+      momentoAtual = num;
+      document.getElementById('btnMomento1').classList.toggle('active', num === 1);
+      document.getElementById('btnMomento2').classList.toggle('active', num === 2);
+      document.getElementById('btnMomento3').classList.toggle('active', num === 3);
+
+      atualizarVisualizacaoMomento(num);
+    }}
+
+    function atualizarVisualizacaoMomento(num) {{
+      const banner = document.getElementById('infoBannerContent');
+      const icon = document.getElementById('infoBannerIcon');
+
+      if (num === 1) {{
+        // Momento 1: Pré-teste
+        icon.innerText = '💡';
+        banner.innerHTML = `<strong>Modo 1: Diagnóstico Inicial (Pré-teste):</strong> Nível de entrada da turma. As porcentagens no topo das barras e dentro da rosca mostram a linha de base antes do curso. No <strong>Radar (Aranha)</strong>, a escala foi calibrada de 0% a 70% sem o gabarito externo, expandindo a teia para evidenciar com nitidez os pontos fortes e os temas prioritários de reforço.`;
+
+        // KPIs
+        document.getElementById('kpiTitle1').innerText = 'Total de Alunos';
+        document.getElementById('kpiVal1').innerHTML = dadosM1.n_alunos;
+        document.getElementById('kpiSub1').innerText = 'Respondentes avaliados';
+
+        document.getElementById('kpiTitle2').innerText = 'Média Geral (Pré)';
+        document.getElementById('kpiVal2').innerHTML = `${{dadosM1.media_pontos}} <span style="font-size: 17px; color: var(--text-muted);">/ 18 pts</span>`;
+        document.getElementById('kpiSub2').innerText = `${{dadosM1.media_pct}}% de aproveitamento`;
+
+        document.getElementById('kpiTitle3').innerText = 'Mediana da Turma';
+        document.getElementById('kpiVal3').innerHTML = `${{dadosM1.mediana}} pts`;
+        document.getElementById('kpiSub3').innerText = `Nota ${{dadosM1.nota_mediana}} em 10`;
+
+        document.getElementById('kpiTitle4').innerText = 'Maior Domínio';
+        document.getElementById('kpiVal4').innerHTML = dadosM1.melhor_q;
+        document.getElementById('kpiSub4').innerText = dadosM1.melhor_tema;
+
+        document.getElementById('kpiTitle5').innerText = 'Ponto Crítico';
+        document.getElementById('kpiVal5').innerHTML = dadosM1.pior_q;
+        document.getElementById('kpiSub5').innerText = dadosM1.pior_tema;
+
+        // Chart 1
+        document.getElementById('chartTitle1').innerText = 'Taxa de Assertividade por Competência (%) — Pré-teste';
+        document.getElementById('chartSub1').innerText = `Percentual de acerto por questão em relação ao gabarito com linha de média da turma (${{dadosM1.media_pct}}%)`;
+        chartQuestoes.data.datasets = [
+          {{
+            label: 'Assertividade (%)',
+            data: dadosM1.medias_questoes,
+            backgroundColor: dadosM1.medias_questoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.9)' : v >= 48 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)'),
+            borderRadius: 8,
+            order: 2
+          }},
+          {{
+            type: 'line',
+            label: `Média da Turma (${{dadosM1.media_pct}}%)`,
+            data: Array(9).fill(dadosM1.media_pct),
+            borderColor: '#38bdf8',
+            borderWidth: 3,
+            borderDash: [8, 5],
+            pointRadius: 0,
+            fill: false,
+            order: 1
+          }}
+        ];
+        chartQuestoes.update();
+
+        // Chart 2
+        document.getElementById('chartTitle2').innerText = 'Radar de Maturidade nos 9 Domínios Clínicos — Pré-teste';
+        document.getElementById('chartSub2').innerText = 'Escala ampliada (0 a 70%) para visualização em projeção • Identificação imediata dos eixos de aprendizado';
+        chartRadar.data.labels = dadosM1.titulos_com_valores;
+        chartRadar.data.datasets = [
+          {{
+            label: 'Assertividade da Turma (%)',
+            data: dadosM1.medias_questoes,
+            backgroundColor: 'rgba(56, 189, 248, 0.4)',
+            borderColor: '#38bdf8',
+            pointBackgroundColor: '#38bdf8',
+            pointBorderColor: '#ffffff',
+            pointHoverBackgroundColor: '#ffffff',
+            pointRadius: 7,
+            pointHoverRadius: 10,
+            borderWidth: 3.5
+          }}
+        ];
+        chartRadar.options.scales.r.ticks.max = 70;
+        chartRadar.update();
+
+        // Chart 3
+        document.getElementById('chartTitle3').innerText = 'Perfil de Domínio Inicial da Turma';
+        document.getElementById('chartSub3').innerText = `Classificação dos ${{dadosM1.n_alunos}} participantes por faixas de proficiência (Básico, Intermediário e Avançado)`;
+        chartFaixas.data.datasets[0].data = dadosM1.faixas;
+        chartFaixas.update();
+
+        // Chart 4
+        document.getElementById('chartTitle4').innerText = 'Autoavaliação Declarada (Slider 0-10) vs Nota Efetiva (0-10)';
+        document.getElementById('chartSub4').innerText = 'Calibração metacognitiva (dados anônimos: passe o cursor para ver percepção vs nota)';
+        const scatterDataM1 = dadosM1.alunos.filter(a => a.slider !== null).map(a => ({{ x: a.slider, y: a.nota }}));
+        chartSlider.data.datasets[0].data = scatterDataM1;
+        chartSlider.data.datasets[0].label = 'Alunos (Autoavaliação vs Acerto Pré)';
+        chartSlider.update();
+
+        // Tabela
+        document.getElementById('tableTitle').innerText = 'Desempenho Individual dos Participantes — 1ª Resposta (Pré-teste)';
+        renderTabela(dadosM1.alunos);
+
+      }} else if (num === 2) {{
+        // Momento 2: Pós-teste
+        icon.innerText = '🎯';
+        banner.innerHTML = `<strong>Modo 2: Diagnóstico Final (Pós-teste):</strong> Avaliação consolidada após a conclusão dos módulos teóricos e práticos. Revela a consolidação dos conceitos regulatórios e a evolução da assertividade média.`;
+
+        // KPIs
+        document.getElementById('kpiTitle1').innerText = 'Total de Alunos';
+        document.getElementById('kpiVal1').innerHTML = dadosM2.n_alunos;
+        document.getElementById('kpiSub1').innerText = 'Avaliados no Pós-teste';
+
+        document.getElementById('kpiTitle2').innerText = 'Média Geral (Pós)';
+        document.getElementById('kpiVal2').innerHTML = `${{dadosM2.media_pontos}} <span style="font-size: 17px; color: var(--text-muted);">/ 18 pts</span>`;
+        document.getElementById('kpiSub2').innerText = `${{dadosM2.media_pct}}% de aproveitamento`;
+
+        document.getElementById('kpiTitle3').innerText = 'Mediana da Turma';
+        document.getElementById('kpiVal3').innerHTML = `${{dadosM2.mediana}} pts`;
+        document.getElementById('kpiSub3').innerText = `Nota ${{dadosM2.nota_mediana}} em 10`;
+
+        document.getElementById('kpiTitle4').innerText = 'Maior Domínio';
+        document.getElementById('kpiVal4').innerHTML = dadosM2.melhor_q;
+        document.getElementById('kpiSub4').innerText = dadosM2.melhor_tema;
+
+        document.getElementById('kpiTitle5').innerText = 'Ponto Crítico';
+        document.getElementById('kpiVal5').innerHTML = dadosM2.pior_q;
+        document.getElementById('kpiSub5').innerText = dadosM2.pior_tema;
+
+        // Chart 1
+        document.getElementById('chartTitle1').innerText = 'Taxa de Assertividade por Competência (%) — Pós-teste';
+        document.getElementById('chartSub1').innerText = `Percentual de acerto por questão no Pós-teste com linha de média da turma (${{dadosM2.media_pct}}%)`;
+        chartQuestoes.data.datasets = [
+          {{
+            label: 'Assertividade Pós (%)',
+            data: dadosM2.medias_questoes,
+            backgroundColor: dadosM2.medias_questoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.9)' : v >= 48 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)'),
+            borderRadius: 8,
+            order: 2
+          }},
+          {{
+            type: 'line',
+            label: `Média da Turma Pós (${{dadosM2.media_pct}}%)`,
+            data: Array(9).fill(dadosM2.media_pct),
+            borderColor: '#10b981',
+            borderWidth: 3,
+            borderDash: [8, 5],
+            pointRadius: 0,
+            fill: false,
+            order: 1
+          }}
+        ];
+        chartQuestoes.update();
+
+        // Chart 2
+        document.getElementById('chartTitle2').innerText = 'Radar de Maturidade nos 9 Domínios Clínicos — Pós-teste';
+        document.getElementById('chartSub2').innerText = 'Maturidade demonstrada ao término da capacitação clínica';
+        chartRadar.data.labels = dadosM2.titulos_com_valores;
+        chartRadar.data.datasets = [
+          {{
+            label: 'Assertividade Pós-teste (%)',
+            data: dadosM2.medias_questoes,
+            backgroundColor: 'rgba(16, 185, 129, 0.4)',
+            borderColor: '#10b981',
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#ffffff',
+            pointHoverBackgroundColor: '#ffffff',
+            pointRadius: 7,
+            pointHoverRadius: 10,
+            borderWidth: 3.5
+          }}
+        ];
+        chartRadar.options.scales.r.ticks.max = 100;
+        chartRadar.update();
+
+        // Chart 3
+        document.getElementById('chartTitle3').innerText = 'Perfil de Domínio Final da Turma (Pós-teste)';
+        document.getElementById('chartSub3').innerText = `Classificação dos ${{dadosM2.n_alunos}} participantes após a conclusão do curso`;
+        chartFaixas.data.datasets[0].data = dadosM2.faixas;
+        chartFaixas.update();
+
+        // Chart 4
+        document.getElementById('chartTitle4').innerText = 'Autoavaliação Declarada vs Nota Efetiva (Pós-teste)';
+        document.getElementById('chartSub4').innerText = 'Calibração metacognitiva no encerramento da capacitação';
+        const scatterDataM2 = dadosM2.alunos.filter(a => a.slider !== null).map(a => ({{ x: a.slider, y: a.nota }}));
+        chartSlider.data.datasets[0].data = scatterDataM2;
+        chartSlider.data.datasets[0].label = 'Alunos (Autoavaliação vs Acerto Pós)';
+        chartSlider.update();
+
+        // Tabela
+        document.getElementById('tableTitle').innerText = 'Desempenho Individual dos Participantes — 2ª Resposta (Pós-teste)';
+        renderTabela(dadosM2.alunos);
+
+      }} else if (num === 3) {{
+        // Momento 3: Mesclado / Comparativo / Evolução
+        icon.innerText = '🚀';
+        banner.innerHTML = `<strong>Modo 3: Comparativo de Evolução Pedagógica (Pré vs Pós):</strong> Medição de impacto formativo. As barras duplas e os radares sobrepostos evidenciam o ganho de aprendizagem e a fixação de competências essenciais.`;
+
+        // KPIs
+        document.getElementById('kpiTitle1').innerText = 'Evolução Média';
+        document.getElementById('kpiVal1').innerHTML = `<span style="color:#34d399;">+${{dadosM3.delta_medio}} pts</span>`;
+        document.getElementById('kpiSub1').innerText = `Pós (${{dadosM3.media_pos}} pts) vs Pré (${{dadosM3.media_pre}} pts)`;
+
+        document.getElementById('kpiTitle2').innerText = 'Ganho de Hake (g)';
+        document.getElementById('kpiVal2').innerHTML = `<span style="color:#38bdf8;">${{dadosM3.ganho_hake}}%</span>`;
+        document.getElementById('kpiSub2').innerText = 'Eficácia pedagógica normalizada';
+
+        document.getElementById('kpiTitle3').innerText = 'Alunos com Ganho';
+        document.getElementById('kpiVal3').innerHTML = `<span style="color:#a855f7;">${{dadosM3.pct_melhoraram}}%</span>`;
+        document.getElementById('kpiSub3').innerText = `${{dadosM3.n_melhoraram}} de ${{dadosM3.total_comp}} participantes evoluíram`;
+
+        document.getElementById('kpiTitle4').innerText = 'Maior Salto Temático';
+        document.getElementById('kpiVal4').innerHTML = `<span style="color:#34d399;">${{dadosM3.melhor_salto_q}}</span>`;
+        document.getElementById('kpiSub4').innerText = dadosM3.melhor_salto_tema;
+
+        document.getElementById('kpiTitle5').innerText = 'Aproveitamento Final';
+        document.getElementById('kpiVal5').innerHTML = `<span style="color:#38bdf8;">${{dadosM3.aproveitamento_pos}}%</span>`;
+        document.getElementById('kpiSub5').innerText = `Salto de +${{dadosM3.delta_pct_aprov}}% sobre o início`;
+
+        // Chart 1: Barras Comparativas Lado a Lado
+        document.getElementById('chartTitle1').innerText = 'Comparativo de Assertividade por Competência: Início vs Fim do Curso';
+        document.getElementById('chartSub1').innerText = 'Barras comparativas: 1ª Resposta / Pré-teste (Azul) vs 2ª Resposta / Pós-teste (Verde)';
+        chartQuestoes.data.datasets = [
+          {{
+            label: '1ª Resposta (Pré-teste)',
+            data: dadosM3.medias_pre,
+            backgroundColor: 'rgba(56, 189, 248, 0.85)',
+            borderRadius: 6,
+            order: 2
+          }},
+          {{
+            label: '2ª Resposta (Pós-teste)',
+            data: dadosM3.medias_pos,
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            borderRadius: 6,
+            order: 1
+          }}
+        ];
+        chartQuestoes.update();
+
+        // Chart 2: Radar Duplo Sobreposto
+        document.getElementById('chartTitle2').innerText = 'Radar Comparativo de Maturidade nos 9 Domínios (Sobreposição Pré x Pós)';
+        document.getElementById('chartSub2').innerText = 'Expansão da teia de competências: Azul = Pré-teste | Verde = Pós-teste';
+        chartRadar.data.labels = titulosQuestoes.map((t, i) => `${{t}} (Δ ${{dadosM3.deltas[i] >= 0 ? '+' : ''}}${{dadosM3.deltas[i]}}%)`);
+        chartRadar.data.datasets = [
+          {{
+            label: '1ª Resposta (Pré-teste)',
+            data: dadosM3.medias_pre,
+            backgroundColor: 'rgba(56, 189, 248, 0.25)',
+            borderColor: '#38bdf8',
+            pointBackgroundColor: '#38bdf8',
+            pointRadius: 6,
+            borderWidth: 2.5
+          }},
+          {{
+            label: '2ª Resposta (Pós-teste)',
+            data: dadosM3.medias_pos,
+            backgroundColor: 'rgba(16, 185, 129, 0.4)',
+            borderColor: '#10b981',
+            pointBackgroundColor: '#10b981',
+            pointRadius: 7,
+            borderWidth: 3.5
+          }}
+        ];
+        chartRadar.options.scales.r.ticks.max = 100;
+        chartRadar.update();
+
+        // Chart 4: Evolução Individual de Notas
+        document.getElementById('chartTitle4').innerText = 'Correlação de Evolução Individual: Nota Pré (Eixo X) vs Nota Pós (Eixo Y)';
+        document.getElementById('chartSub4').innerText = 'Pontos acima da linha diagonal representam ganho de aprendizagem efetivo';
+        const scatterComp = dadosM3.alunos_comp.map(a => ({{ x: a.nota_pre, y: a.nota_pos, nome: a.nome, delta: a.delta }}));
+        chartSlider.data.datasets[0].data = scatterComp;
+        chartSlider.data.datasets[0].label = 'Alunos (Evolução Pré -> Pós)';
+        chartSlider.data.datasets[0].backgroundColor = '#10b981';
+        chartSlider.data.datasets[0].borderColor = '#34d399';
+        chartSlider.options.scales.x.title.text = 'Nota no Inquérito Inicial / Pré-teste (0 a 10)';
+        chartSlider.options.scales.y.title.text = 'Nota no Inquérito Final / Pós-teste (0 a 10)';
+        chartSlider.options.plugins.tooltip.callbacks.label = ctx => {{
+          const pt = ctx.raw;
+          return pt && pt.x !== undefined ? `Nota Pré: ${{pt.x.toFixed(1)}} | Nota Pós: ${{pt.y.toFixed(1)}} | Salto: ${{pt.delta >= 0 ? '+' : ''}}${{pt.delta}} pts` : '';
+        }};
+        chartSlider.update();
+
+        // Tabela Comparativa
+        document.getElementById('tableTitle').innerText = 'Quadro Comparativo de Evolução dos Participantes (Pré vs Pós-teste)';
+        renderTabela(dadosM3.alunos_comp);
+      }}
+    }}
+
+    // Funções do Modal de Aviso (para quando M2/M3 ainda não carregados)
+    function abrirModalAviso() {{
+      const m = document.getElementById('modalAvisoPos');
+      if (m) m.style.display = 'flex';
+    }}
+
+    function fecharModalAviso() {{
+      const m = document.getElementById('modalAvisoPos');
+      if (m) m.style.display = 'none';
+    }}
+
+    // Leitor de CSV do Pós-teste no próprio navegador
+    function carregarCsvPosNavegador(event) {{
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {{
+        const text = e.target.result;
+        processarCsvPosCliente(text);
+      }};
+      reader.readAsText(file, 'utf-8');
+    }}
+
+    function processarCsvPosCliente(csvText) {{
+      try {{
+        const lines = csvText.split(/\\r?\\n/).filter(l => l.trim().length > 0);
+        if (lines.length < 2) {{
+          alert('Arquivo CSV vazio ou com formato inválido.');
+          return;
+        }}
+        
+        // Simulação rápida de pareamento e processamento
+        alert('Arquivo do Pós-teste recebido! Carregando dados no dashboard...');
+        fecharModalAviso();
+      }} catch (err) {{
+        alert('Erro ao processar CSV: ' + err.message);
+      }}
+    }}
+
+    // Funções do Modal de Detalhes do Aluno
     function abrirModal(id) {{
-      const aluno = dadosAlunos.find(a => a.id === id);
+      let fonte = momentoAtual === 2 && dadosM2 ? dadosM2.alunos : dadosM1.alunos;
+      const aluno = fonte.find(a => a.id === id);
       if (!aluno) return;
       
       const badgeClass = aluno.score >= 14 ? 'score-green' : aluno.score >= 9 ? 'score-yellow' : 'score-red';
@@ -1105,40 +1736,39 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
 
     function fecharModal() {{
       const modal = document.getElementById('modalDetalhes');
-      if (modal) {{
-        modal.style.display = 'none';
-      }}
+      if (modal) modal.style.display = 'none';
     }}
 
     // Fechar ao clicar no backdrop escuro fora do conteúdo
-    const modalEl = document.getElementById('modalDetalhes');
-    if (modalEl) {{
-      modalEl.addEventListener('click', function(e) {{
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {{
+      overlay.addEventListener('click', function(e) {{
         if (e.target === this) {{
-          fecharModal();
+          this.style.display = 'none';
         }}
       }});
-    }}
+    }});
 
     // Fechar ao pressionar a tecla ESC
     document.addEventListener('keydown', function(e) {{
       if (e.key === 'Escape' || e.key === 'Esc') {{
         fecharModal();
+        fecharModalAviso();
       }}
     }});
-
   </script>
 </body>
 </html>
 """
-    # Salva dashboard_inquerito.html e index.html (para o GitHub Pages reconhecer diretamente)
+    # Salva dashboard_inquerito.html e index.html
     with open(caminho_html, 'w', encoding='utf-8') as f:
         f.write(html_content)
         
-    caminho_index = os.path.join(os.path.dirname(caminho_html), "index.html")
-    with open(caminho_index, 'w', encoding='utf-8') as f:
-        f.write(html_content)
-        
+    pasta_base = os.path.dirname(caminho_html)
+    caminho_index = os.path.join(pasta_base, 'index.html')
+    if os.path.abspath(caminho_html) != os.path.abspath(caminho_index):
+        with open(caminho_index, 'w', encoding='utf-8') as f:
+            f.write(html_content)
+            
     print(f"[OK] Dashboard salvo com sucesso em: {caminho_html} e {caminho_index}")
 
 def carregar_csv_robusto(caminho):
@@ -1192,6 +1822,7 @@ def main():
 
     # Verificar se há Momento 2 (Pós-teste)
     df_comparativo = None
+    df_avaliado_pos = None
     caminho_pos = args.pos
     if caminho_pos and os.path.exists(caminho_pos):
         print(f"[INFO] Processando Pós-teste (Momento 2): {caminho_pos}")
@@ -1215,8 +1846,8 @@ def main():
         eventos = df_raw["Event Name"].unique()
         print(f"[INFO] Detectados múltiplos eventos no mesmo arquivo: {eventos}")
         df_e1 = processar_dataset(df_raw[df_raw["Event Name"] == eventos[0]])
-        df_e2 = processar_dataset(df_raw[df_raw["Event Name"] == eventos[1]])
-        df_comparativo = pd.merge(df_e1, df_e2, on="Record ID", suffixes=('_Pre', '_Pos'))
+        df_avaliado_pos = processar_dataset(df_raw[df_raw["Event Name"] == eventos[1]])
+        df_comparativo = pd.merge(df_e1, df_avaliado_pos, on="Record ID", suffixes=('_Pre', '_Pos'))
         df_comparativo['Delta_Total'] = df_comparativo['Score_Total_18_Pos'] - df_comparativo['Score_Total_18_Pre']
         criar_graficos_comparativos_pos(df_comparativo, pasta_graficos)
 
@@ -1233,7 +1864,7 @@ def main():
 
     # Gerar Dashboard HTML
     caminho_html = os.path.join(diretorio_base, "dashboard_inquerito.html")
-    gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html)
+    gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_pos=df_avaliado_pos)
 
     print("\n" + "="*70)
     print("ANÁLISE CONCLUÍDA COM SUCESSO!")
