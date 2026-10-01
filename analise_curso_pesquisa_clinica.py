@@ -1202,46 +1202,58 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
       }}
     }};
 
-    // Plugin para renderizar percentuais e contagem dentro das fatias da rosca
+    // Plugin para renderizar percentuais e contagem dentro das fatias da rosca (inclusive na rosca comparativa dupla)
     const pluginDoughnutLabels = {{
       id: 'pluginDoughnutLabels',
       afterDatasetsDraw(chart) {{
-        if (typeof estadoBlocos !== 'undefined' && estadoBlocos.faixas === 3) return; // Não desenha na rosca comparativa dupla
+        if (chart.canvas.id !== 'chartFaixas') return;
         const {{ ctx, data }} = chart;
-        const meta = chart.getDatasetMeta(0);
-        if (!meta || meta.hidden) return;
+        const isDoubleRing = data.datasets.length > 1;
 
-        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
-        if (!total) return;
+        data.datasets.forEach((dataset, dIdx) => {{
+          const meta = chart.getDatasetMeta(dIdx);
+          if (!meta || meta.hidden) return;
 
-        ctx.save();
-        meta.data.forEach((element, index) => {{
-          const val = data.datasets[0].data[index];
-          if (!val) return;
-          const pct = ((val / total) * 100).toFixed(1).replace('.0', '') + '%';
+          const total = dataset.data.reduce((a, b) => a + b, 0);
+          if (!total) return;
 
-          const {{ startAngle, endAngle, outerRadius, innerRadius, x, y }} = element;
-          const midAngle = (startAngle + endAngle) / 2;
-          const radius = innerRadius + (outerRadius - innerRadius) * 0.52;
+          ctx.save();
+          meta.data.forEach((element, index) => {{
+            const val = dataset.data[index];
+            if (!val) return;
+            const pctVal = (val / total) * 100;
+            if (pctVal < 6) return; // evita sobreposição em fatias muito estreitas
 
-          const posX = x + Math.cos(midAngle) * radius;
-          const posY = y + Math.sin(midAngle) * radius;
+            const pct = pctVal.toFixed(1).replace('.0', '') + '%';
+            const {{ startAngle, endAngle, outerRadius, innerRadius, x, y }} = element;
+            const midAngle = (startAngle + endAngle) / 2;
+            const radius = innerRadius + (outerRadius - innerRadius) * 0.52;
 
-          ctx.fillStyle = '#ffffff';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-          ctx.shadowBlur = 8;
+            const posX = x + Math.cos(midAngle) * radius;
+            const posY = y + Math.sin(midAngle) * radius;
 
-          // Percentual em destaque
-          ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
-          ctx.fillText(pct, posX, posY - 9);
+            ctx.fillStyle = '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+            ctx.shadowBlur = 7;
 
-          // Contagem de alunos
-          ctx.font = 'bold 14px system-ui, -apple-system, sans-serif';
-          ctx.fillText(`(${{val}} ${{val === 1 ? 'aluno' : 'alunos'}})`, posX, posY + 12);
+            if (isDoubleRing) {{
+              // Na rosca dupla (Pré vs Pós): % em destaque nítido
+              ctx.font = 'bold 15px system-ui, -apple-system, sans-serif';
+              ctx.fillText(`${{pct}} (${{val}})`, posX, posY);
+            }} else {{
+              // Percentual em destaque no modo individual
+              ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+              ctx.fillText(pct, posX, posY - 9);
+
+              // Contagem de alunos
+              ctx.font = 'bold 14px system-ui, -apple-system, sans-serif';
+              ctx.fillText(`(${{val}} ${{val === 1 ? 'aluno' : 'alunos'}})`, posX, posY + 12);
+            }}
+          }});
+          ctx.restore();
         }});
-        ctx.restore();
       }}
     }};
 
