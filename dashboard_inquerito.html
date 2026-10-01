@@ -161,6 +161,60 @@
       line-height: 1.6;
     }
     
+    /* Toggle de Momento dentro de Cada Bloco Individual */
+    .block-toggle-group {
+      display: inline-flex;
+      background: #090f1d;
+      border: 1px solid var(--card-border);
+      border-radius: 30px;
+      padding: 4px;
+      gap: 4px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      align-self: flex-start;
+    }
+    .block-btn {
+      background: transparent;
+      border: 1px solid transparent;
+      color: #94a3b8;
+      padding: 7px 14px;
+      border-radius: 20px;
+      font-size: 13.5px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      outline: none;
+      white-space: nowrap;
+    }
+    .block-btn:hover {
+      color: #ffffff;
+      background: rgba(255,255,255,0.06);
+    }
+    .block-btn.active {
+      background: var(--accent);
+      color: #0b1120;
+      font-weight: 800;
+      box-shadow: 0 2px 10px rgba(56, 189, 248, 0.4);
+    }
+    .b-badge-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      color: inherit;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .block-btn.active .b-badge-num {
+      background: #0b1120;
+      color: var(--accent);
+    }
+
     /* Layout: 1 BLOCO POR SEÇÃO (100% da tela para projeção) */
     .charts-grid {
       display: flex;
@@ -178,7 +232,17 @@
       box-shadow: 0 16px 40px -10px rgba(0,0,0,0.45);
       scroll-margin-top: 25px;
     }
-    .chart-header { margin-bottom: 26px; }
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 26px;
+    }
+    .chart-header > div:first-child {
+      flex: 1 1 500px;
+    }
     .chart-header h3 { font-size: 28px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; }
     .chart-subtitle { font-size: 17px; color: var(--text-muted); margin-top: 8px; font-weight: 500; }
     .chart-canvas-container { position: relative; height: 640px; width: 100%; }
@@ -296,6 +360,17 @@
             <h3 id="chartTitle1">Taxa de Assertividade por Competência (%)</h3>
             <div id="chartSub1" class="chart-subtitle">Percentual de acerto por questão do inquérito em relação ao gabarito com linha de média da turma (51.8%)</div>
           </div>
+          <div class="block-toggle-group">
+            <button id="btnB1_1" class="block-btn active" onclick="mudarMomentoBloco('barras', 1)">
+              <span class="b-badge-num">1</span> 1ª Resposta
+            </button>
+            <button id="btnB1_2" class="block-btn" onclick="mudarMomentoBloco('barras', 2)">
+              <span class="b-badge-num">2</span> 2ª Resposta
+            </button>
+            <button id="btnB1_3" class="block-btn" onclick="mudarMomentoBloco('barras', 3)">
+              <span class="b-badge-num">3</span> Mesclado
+            </button>
+          </div>
         </div>
         <div class="chart-canvas-container">
           <canvas id="chartQuestoes"></canvas>
@@ -308,6 +383,17 @@
           <div>
             <h3 id="chartTitle2">Radar de Maturidade nos 9 Domínios Clínicos</h3>
             <div id="chartSub2" class="chart-subtitle">Escala ampliada (0 a 70%) para visualização em projeção • Identificação imediata dos eixos de aprendizado</div>
+          </div>
+          <div class="block-toggle-group">
+            <button id="btnB2_1" class="block-btn active" onclick="mudarMomentoBloco('radar', 1)">
+              <span class="b-badge-num">1</span> 1ª Resposta
+            </button>
+            <button id="btnB2_2" class="block-btn" onclick="mudarMomentoBloco('radar', 2)">
+              <span class="b-badge-num">2</span> 2ª Resposta
+            </button>
+            <button id="btnB2_3" class="block-btn" onclick="mudarMomentoBloco('radar', 3)">
+              <span class="b-badge-num">3</span> Mesclado
+            </button>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -322,6 +408,17 @@
             <h3 id="chartTitle3">Perfil de Domínio Inicial da Turma</h3>
             <div id="chartSub3" class="chart-subtitle">Classificação dos 19 participantes por faixas de proficiência (Básico, Intermediário e Avançado)</div>
           </div>
+          <div class="block-toggle-group">
+            <button id="btnB3_1" class="block-btn active" onclick="mudarMomentoBloco('faixas', 1)">
+              <span class="b-badge-num">1</span> 1ª Resposta
+            </button>
+            <button id="btnB3_2" class="block-btn" onclick="mudarMomentoBloco('faixas', 2)">
+              <span class="b-badge-num">2</span> 2ª Resposta
+            </button>
+            <button id="btnB3_3" class="block-btn" onclick="mudarMomentoBloco('faixas', 3)">
+              <span class="b-badge-num">3</span> Mesclado
+            </button>
+          </div>
         </div>
         <div class="chart-canvas-container">
           <canvas id="chartFaixas"></canvas>
@@ -334,6 +431,17 @@
           <div>
             <h3 id="chartTitle4">Autoavaliação Declarada (Slider 0-10) vs Nota Efetiva (0-10)</h3>
             <div id="chartSub4" class="chart-subtitle">Calibração metacognitiva (dados anônimos: passe o cursor para ver percepção vs nota)</div>
+          </div>
+          <div class="block-toggle-group">
+            <button id="btnB4_1" class="block-btn active" onclick="mudarMomentoBloco('slider', 1)">
+              <span class="b-badge-num">1</span> 1ª Resposta
+            </button>
+            <button id="btnB4_2" class="block-btn" onclick="mudarMomentoBloco('slider', 2)">
+              <span class="b-badge-num">2</span> 2ª Resposta
+            </button>
+            <button id="btnB4_3" class="block-btn" onclick="mudarMomentoBloco('slider', 3)">
+              <span class="b-badge-num">3</span> Mesclado
+            </button>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -349,7 +457,20 @@
           <h3 id="tableTitle" style="font-size: 26px; font-weight: 800;">Desempenho Individual dos Participantes</h3>
           <p id="tableSub" style="font-size: 15px; color: var(--text-muted); margin-top: 6px;">Clique em "Ver Respostas" para inspecionar cada pergunta, resposta do aluno, gabarito e feedback do corretor.</p>
         </div>
-        <input type="text" id="searchInput" class="search-box" placeholder="Buscar por nome do aluno...">
+        <div style="display: flex; gap: 14px; align-items: center; flex-wrap: wrap;">
+          <div class="block-toggle-group">
+            <button id="btnB5_1" class="block-btn active" onclick="mudarMomentoBloco('tabela', 1)">
+              <span class="b-badge-num">1</span> 1ª Resposta
+            </button>
+            <button id="btnB5_2" class="block-btn" onclick="mudarMomentoBloco('tabela', 2)">
+              <span class="b-badge-num">2</span> 2ª Resposta
+            </button>
+            <button id="btnB5_3" class="block-btn" onclick="mudarMomentoBloco('tabela', 3)">
+              <span class="b-badge-num">3</span> Mesclado
+            </button>
+          </div>
+          <input type="text" id="searchInput" class="search-box" placeholder="Buscar por nome do aluno...">
+        </div>
       </div>
       <div style="overflow-x: auto;">
         <table id="tabelaAlunos">
@@ -456,7 +577,7 @@
     const pluginDoughnutLabels = {
       id: 'pluginDoughnutLabels',
       afterDatasetsDraw(chart) {
-        if (momentoAtual === 3) return; // Não desenha na rosca comparativa
+        if (typeof estadoBlocos !== 'undefined' && estadoBlocos.faixas === 3) return; // Não desenha na rosca comparativa dupla
         const { ctx, data } = chart;
         const meta = chart.getDatasetMeta(0);
         if (!meta || meta.hidden) return;
@@ -681,14 +802,311 @@
       }
     });
 
+    // Estado individual de cada bloco (1 = Pré, 2 = Pós, 3 = Mesclado)
+    const estadoBlocos = {
+      barras: 1,
+      radar: 1,
+      faixas: 1,
+      slider: 1,
+      tabela: 1
+    };
+
+    function atualizarBotoesBloco(tipo, num) {
+      const prefixo = tipo === 'barras' ? 'btnB1_' :
+                      tipo === 'radar' ? 'btnB2_' :
+                      tipo === 'faixas' ? 'btnB3_' :
+                      tipo === 'slider' ? 'btnB4_' : 'btnB5_';
+      for (let i = 1; i <= 3; i++) {
+        const btn = document.getElementById(prefixo + i);
+        if (btn) btn.classList.toggle('active', i === num);
+      }
+    }
+
+    function mudarMomentoBloco(tipo, num) {
+      if ((num === 2 || num === 3) && !temPos) {
+        abrirModalAviso();
+        return;
+      }
+      estadoBlocos[tipo] = num;
+      atualizarBotoesBloco(tipo, num);
+
+      if (tipo === 'barras') renderBlocoBarras(num);
+      else if (tipo === 'radar') renderBlocoRadar(num);
+      else if (tipo === 'faixas') renderBlocoFaixas(num);
+      else if (tipo === 'slider') renderBlocoSlider(num);
+      else if (tipo === 'tabela') renderBlocoTabela(num);
+    }
+
+    function renderBlocoBarras(num) {
+      const t = document.getElementById('chartTitle1');
+      const s = document.getElementById('chartSub1');
+      if (num === 1) {
+        t.innerText = 'Taxa de Assertividade por Competência (%) — 1ª Resposta (Pré-teste)';
+        s.innerText = `Percentual de acerto por questão em relação ao gabarito com linha de média da turma (${dadosM1.media_pct}%)`;
+        chartQuestoes.data.datasets = [
+          {
+            label: 'Assertividade (%)',
+            data: dadosM1.medias_questoes,
+            backgroundColor: dadosM1.medias_questoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.9)' : v >= 48 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)'),
+            borderRadius: 8,
+            order: 2
+          },
+          {
+            type: 'line',
+            label: `Média da Turma (${dadosM1.media_pct}%)`,
+            data: Array(9).fill(dadosM1.media_pct),
+            borderColor: '#38bdf8',
+            borderWidth: 3,
+            borderDash: [8, 5],
+            pointRadius: 0,
+            fill: false,
+            order: 1
+          }
+        ];
+      } else if (num === 2 && dadosM2) {
+        t.innerText = 'Taxa de Assertividade por Competência (%) — 2ª Resposta (Pós-teste)';
+        s.innerText = `Percentual de acerto por questão no Pós-teste com linha de média da turma (${dadosM2.media_pct}%)`;
+        chartQuestoes.data.datasets = [
+          {
+            label: 'Assertividade Pós (%)',
+            data: dadosM2.medias_questoes,
+            backgroundColor: dadosM2.medias_questoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.9)' : v >= 48 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)'),
+            borderRadius: 8,
+            order: 2
+          },
+          {
+            type: 'line',
+            label: `Média da Turma Pós (${dadosM2.media_pct}%)`,
+            data: Array(9).fill(dadosM2.media_pct),
+            borderColor: '#10b981',
+            borderWidth: 3,
+            borderDash: [8, 5],
+            pointRadius: 0,
+            fill: false,
+            order: 1
+          }
+        ];
+      } else if (num === 3 && dadosM3) {
+        t.innerText = 'Comparativo de Assertividade por Competência: Início vs Fim do Curso';
+        s.innerText = 'Barras comparativas: 1ª Resposta / Pré-teste (Azul) vs 2ª Resposta / Pós-teste (Verde)';
+        chartQuestoes.data.datasets = [
+          {
+            label: '1ª Resposta (Pré-teste)',
+            data: dadosM3.medias_pre,
+            backgroundColor: 'rgba(56, 189, 248, 0.85)',
+            borderRadius: 6,
+            order: 2
+          },
+          {
+            label: '2ª Resposta (Pós-teste)',
+            data: dadosM3.medias_pos,
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            borderRadius: 6,
+            order: 1
+          }
+        ];
+      }
+      chartQuestoes.update();
+    }
+
+    function renderBlocoRadar(num) {
+      const t = document.getElementById('chartTitle2');
+      const s = document.getElementById('chartSub2');
+      if (num === 1) {
+        t.innerText = 'Radar de Maturidade nos 9 Domínios Clínicos — 1ª Resposta (Pré-teste)';
+        s.innerText = 'Escala ampliada (0 a 70%) para visualização em projeção • Identificação imediata dos eixos de aprendizado';
+        chartRadar.data.labels = dadosM1.titulos_com_valores;
+        chartRadar.data.datasets = [
+          {
+            label: 'Assertividade da Turma (%)',
+            data: dadosM1.medias_questoes,
+            backgroundColor: 'rgba(56, 189, 248, 0.4)',
+            borderColor: '#38bdf8',
+            pointBackgroundColor: '#38bdf8',
+            pointBorderColor: '#ffffff',
+            pointHoverBackgroundColor: '#ffffff',
+            pointRadius: 7,
+            pointHoverRadius: 10,
+            borderWidth: 3.5
+          }
+        ];
+        chartRadar.options.scales.r.ticks.max = 70;
+      } else if (num === 2 && dadosM2) {
+        t.innerText = 'Radar de Maturidade nos 9 Domínios Clínicos — 2ª Resposta (Pós-teste)';
+        s.innerText = 'Maturidade demonstrada ao término da capacitação clínica (Escala até 100%)';
+        chartRadar.data.labels = dadosM2.titulos_com_valores;
+        chartRadar.data.datasets = [
+          {
+            label: 'Assertividade Pós-teste (%)',
+            data: dadosM2.medias_questoes,
+            backgroundColor: 'rgba(16, 185, 129, 0.4)',
+            borderColor: '#10b981',
+            pointBackgroundColor: '#10b981',
+            pointBorderColor: '#ffffff',
+            pointHoverBackgroundColor: '#ffffff',
+            pointRadius: 7,
+            pointHoverRadius: 10,
+            borderWidth: 3.5
+          }
+        ];
+        chartRadar.options.scales.r.ticks.max = 100;
+      } else if (num === 3 && dadosM3) {
+        t.innerText = 'Radar Comparativo de Maturidade nos 9 Domínios (Sobreposição Pré x Pós)';
+        s.innerText = 'Expansão da teia de competências: Azul = Pré-teste | Verde = Pós-teste';
+        chartRadar.data.labels = titulosQuestoes.map((t, i) => `${t} (Δ ${dadosM3.deltas[i] >= 0 ? '+' : ''}${dadosM3.deltas[i]}%)`);
+        chartRadar.data.datasets = [
+          {
+            label: '1ª Resposta (Pré-teste)',
+            data: dadosM3.medias_pre,
+            backgroundColor: 'rgba(56, 189, 248, 0.25)',
+            borderColor: '#38bdf8',
+            pointBackgroundColor: '#38bdf8',
+            pointRadius: 6,
+            borderWidth: 2.5
+          },
+          {
+            label: '2ª Resposta (Pós-teste)',
+            data: dadosM3.medias_pos,
+            backgroundColor: 'rgba(16, 185, 129, 0.4)',
+            borderColor: '#10b981',
+            pointBackgroundColor: '#10b981',
+            pointRadius: 7,
+            borderWidth: 3.5
+          }
+        ];
+        chartRadar.options.scales.r.ticks.max = 100;
+      }
+      chartRadar.update();
+    }
+
+    function renderBlocoFaixas(num) {
+      const t = document.getElementById('chartTitle3');
+      const s = document.getElementById('chartSub3');
+      if (num === 1) {
+        t.innerText = 'Perfil de Domínio Inicial da Turma (1ª Resposta - Pré-teste)';
+        s.innerText = `Classificação dos ${dadosM1.n_alunos} participantes por faixas de proficiência (Básico, Intermediário e Avançado)`;
+        chartFaixas.data.datasets = [{
+          label: 'Alunos',
+          data: dadosM1.faixas,
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+          borderColor: '#162032',
+          borderWidth: 3
+        }];
+      } else if (num === 2 && dadosM2) {
+        t.innerText = 'Perfil de Domínio Final da Turma (2ª Resposta - Pós-teste)';
+        s.innerText = `Classificação dos ${dadosM2.n_alunos} participantes após a conclusão do curso`;
+        chartFaixas.data.datasets = [{
+          label: 'Alunos',
+          data: dadosM2.faixas,
+          backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+          borderColor: '#162032',
+          borderWidth: 3
+        }];
+      } else if (num === 3 && dadosM3) {
+        t.innerText = 'Evolução das Faixas de Domínio da Turma (Pré vs Pós-teste)';
+        s.innerText = 'Comparativo de proficiência: Anel Externo (Pós-teste) vs Anel Interno (Pré-teste)';
+        const faixasPre = dadosM3.faixas_pre || dadosM1.faixas;
+        const faixasPos = dadosM3.faixas_pos || (dadosM2 ? dadosM2.faixas : dadosM1.faixas);
+        chartFaixas.data.datasets = [
+          {
+            label: 'Pós-teste (2ª Resposta)',
+            data: faixasPos,
+            backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+            borderColor: '#162032',
+            borderWidth: 3
+          },
+          {
+            label: 'Pré-teste (1ª Resposta)',
+            data: faixasPre,
+            backgroundColor: ['rgba(16, 185, 129, 0.45)', 'rgba(245, 158, 11, 0.45)', 'rgba(239, 68, 68, 0.45)'],
+            borderColor: '#162032',
+            borderWidth: 3
+          }
+        ];
+      }
+      chartFaixas.update();
+    }
+
+    function renderBlocoSlider(num) {
+      const t = document.getElementById('chartTitle4');
+      const s = document.getElementById('chartSub4');
+      if (num === 1) {
+        t.innerText = 'Autoavaliação Declarada (Slider 0-10) vs Nota Efetiva (0-10) — 1ª Resposta';
+        s.innerText = 'Calibração metacognitiva no início (dados anônimos: passe o cursor para ver percepção vs nota)';
+        const scatterDataM1 = dadosM1.alunos.filter(a => a.slider !== null).map(a => ({ x: a.slider, y: a.nota }));
+        chartSlider.data.datasets[0].data = scatterDataM1;
+        chartSlider.data.datasets[0].label = 'Alunos (Autoavaliação vs Acerto Pré)';
+        chartSlider.data.datasets[0].backgroundColor = '#a855f7';
+        chartSlider.data.datasets[0].borderColor = '#c084fc';
+        chartSlider.options.scales.x.title.text = 'Autoavaliação Declarada no REDCap (0 a 10)';
+        chartSlider.options.scales.y.title.text = 'Nota Efetiva Obtida no Teste (0 a 10)';
+        chartSlider.options.plugins.tooltip.callbacks.label = ctx => ctx.raw && ctx.raw.x !== undefined 
+          ? `Autoavaliação: ${ctx.raw.x}/10  |  Acerto Efetivo: ${ctx.raw.y}/10` 
+          : ctx.dataset.label;
+      } else if (num === 2 && dadosM2) {
+        t.innerText = 'Autoavaliação Declarada vs Nota Efetiva — 2ª Resposta (Pós-teste)';
+        s.innerText = 'Calibração metacognitiva no encerramento da capacitação';
+        const scatterDataM2 = dadosM2.alunos.filter(a => a.slider !== null).map(a => ({ x: a.slider, y: a.nota }));
+        chartSlider.data.datasets[0].data = scatterDataM2;
+        chartSlider.data.datasets[0].label = 'Alunos (Autoavaliação vs Acerto Pós)';
+        chartSlider.data.datasets[0].backgroundColor = '#10b981';
+        chartSlider.data.datasets[0].borderColor = '#34d399';
+        chartSlider.options.scales.x.title.text = 'Autoavaliação Declarada no REDCap (0 a 10)';
+        chartSlider.options.scales.y.title.text = 'Nota Efetiva Obtida no Teste (0 a 10)';
+        chartSlider.options.plugins.tooltip.callbacks.label = ctx => ctx.raw && ctx.raw.x !== undefined 
+          ? `Autoavaliação Pós: ${ctx.raw.x}/10  |  Acerto Efetivo: ${ctx.raw.y}/10` 
+          : ctx.dataset.label;
+      } else if (num === 3 && dadosM3) {
+        t.innerText = 'Correlação de Evolução Individual: Nota Pré (Eixo X) vs Nota Pós (Eixo Y)';
+        s.innerText = 'Pontos acima da linha diagonal representam ganho de aprendizagem efetivo';
+        const scatterComp = dadosM3.alunos_comp.map(a => ({ x: a.nota_pre, y: a.nota_pos, nome: a.nome, delta: a.delta }));
+        chartSlider.data.datasets[0].data = scatterComp;
+        chartSlider.data.datasets[0].label = 'Alunos (Evolução Pré -> Pós)';
+        chartSlider.data.datasets[0].backgroundColor = '#10b981';
+        chartSlider.data.datasets[0].borderColor = '#34d399';
+        chartSlider.options.scales.x.title.text = 'Nota no Inquérito Inicial / Pré-teste (0 a 10)';
+        chartSlider.options.scales.y.title.text = 'Nota no Inquérito Final / Pós-teste (0 a 10)';
+        chartSlider.options.plugins.tooltip.callbacks.label = ctx => {
+          const pt = ctx.raw;
+          return pt && pt.x !== undefined ? `Nota Pré: ${pt.x.toFixed(1)} | Nota Pós: ${pt.y.toFixed(1)} | Salto: ${pt.delta >= 0 ? '+' : ''}${pt.delta} pts` : '';
+        };
+      }
+      chartSlider.update();
+    }
+
+    function renderBlocoTabela(num) {
+      const t = document.getElementById('tableTitle');
+      const s = document.getElementById('tableSub');
+      const termo = (document.getElementById('searchInput').value || '').toLowerCase();
+      
+      let lista = [];
+      if (num === 3 && dadosM3) {
+        t.innerText = 'Quadro Comparativo de Evolução dos Participantes (Pré vs Pós-teste)';
+        s.innerText = 'Comparação direta de pontuação, notas, delta de evolução e ganho pedagógico normalizado de Hake.';
+        lista = dadosM3.alunos_comp;
+      } else if (num === 2 && dadosM2) {
+        t.innerText = 'Desempenho Individual dos Participantes — 2ª Resposta (Pós-teste)';
+        s.innerText = 'Clique em "Ver Respostas" para inspecionar o desempenho no Pós-teste.';
+        lista = dadosM2.alunos;
+      } else {
+        t.innerText = 'Desempenho Individual dos Participantes — 1ª Resposta (Pré-teste)';
+        s.innerText = 'Clique em "Ver Respostas" para inspecionar cada pergunta, resposta do aluno, gabarito e feedback do corretor.';
+        lista = dadosM1.alunos;
+      }
+
+      if (termo) {
+        lista = lista.filter(a => a.nome.toLowerCase().includes(termo));
+      }
+      renderTabela(lista, num);
+    }
+
     // Render Tabela de Alunos
-    function renderTabela(lista) {
+    function renderTabela(lista, modo = estadoBlocos.tabela) {
       const thead = document.getElementById('tabelaHead');
       const tbody = document.getElementById('tabelaBody');
       tbody.innerHTML = '';
       
-      if (momentoAtual === 3) {
-        // Cabeçalho da Tabela Comparativa
+      if (modo === 3) {
         thead.innerHTML = `
           <tr>
             <th>ID</th>
@@ -720,7 +1138,6 @@
           tbody.appendChild(tr);
         });
       } else {
-        // Cabeçalho do Momento 1 ou 2
         thead.innerHTML = `
           <tr>
             <th>ID</th>
@@ -751,41 +1168,26 @@
       }
     }
 
-    renderTabela(dadosM1.alunos);
+    renderTabela(dadosM1.alunos, 1);
 
     // Filtro de busca na tabela
     document.getElementById('searchInput').addEventListener('input', e => {
       const termo = e.target.value.toLowerCase();
-      let fonte = momentoAtual === 3 ? (dadosM3 ? dadosM3.alunos_comp : []) : (momentoAtual === 2 ? (dadosM2 ? dadosM2.alunos : []) : dadosM1.alunos);
+      const modo = estadoBlocos.tabela;
+      let fonte = modo === 3 ? (dadosM3 ? dadosM3.alunos_comp : []) : (modo === 2 ? (dadosM2 ? dadosM2.alunos : []) : dadosM1.alunos);
       const filtrados = fonte.filter(a => a.nome.toLowerCase().includes(termo));
-      renderTabela(filtrados);
+      renderTabela(filtrados, modo);
     });
 
-    // Alternância entre os 3 Momentos
-    function selecionarMomento(num) {
-      if ((num === 2 || num === 3) && !temPos) {
-        abrirModalAviso();
-        return;
-      }
-
-      momentoAtual = num;
-      document.getElementById('btnMomento1').classList.toggle('active', num === 1);
-      document.getElementById('btnMomento2').classList.toggle('active', num === 2);
-      document.getElementById('btnMomento3').classList.toggle('active', num === 3);
-
-      atualizarVisualizacaoMomento(num);
-    }
-
-    function atualizarVisualizacaoMomento(num) {
+    // Atualização dos KPIs e Header Global
+    function atualizarHeaderEKpis(num) {
       const banner = document.getElementById('infoBannerContent');
       const icon = document.getElementById('infoBannerIcon');
 
       if (num === 1) {
-        // Momento 1: Pré-teste
         icon.innerText = '💡';
         banner.innerHTML = `<strong>Modo 1: Diagnóstico Inicial (Pré-teste):</strong> Nível de entrada da turma. As porcentagens no topo das barras e dentro da rosca mostram a linha de base antes do curso. No <strong>Radar (Aranha)</strong>, a escala foi calibrada de 0% a 70% sem o gabarito externo, expandindo a teia para evidenciar com nitidez os pontos fortes e os temas prioritários de reforço.`;
 
-        // KPIs
         document.getElementById('kpiTitle1').innerText = 'Total de Alunos';
         document.getElementById('kpiVal1').innerHTML = dadosM1.n_alunos;
         document.getElementById('kpiSub1').innerText = 'Respondentes avaliados';
@@ -806,76 +1208,10 @@
         document.getElementById('kpiVal5').innerHTML = dadosM1.pior_q;
         document.getElementById('kpiSub5').innerText = dadosM1.pior_tema;
 
-        // Chart 1
-        document.getElementById('chartTitle1').innerText = 'Taxa de Assertividade por Competência (%) — Pré-teste';
-        document.getElementById('chartSub1').innerText = `Percentual de acerto por questão em relação ao gabarito com linha de média da turma (${dadosM1.media_pct}%)`;
-        chartQuestoes.data.datasets = [
-          {
-            label: 'Assertividade (%)',
-            data: dadosM1.medias_questoes,
-            backgroundColor: dadosM1.medias_questoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.9)' : v >= 48 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)'),
-            borderRadius: 8,
-            order: 2
-          },
-          {
-            type: 'line',
-            label: `Média da Turma (${dadosM1.media_pct}%)`,
-            data: Array(9).fill(dadosM1.media_pct),
-            borderColor: '#38bdf8',
-            borderWidth: 3,
-            borderDash: [8, 5],
-            pointRadius: 0,
-            fill: false,
-            order: 1
-          }
-        ];
-        chartQuestoes.update();
-
-        // Chart 2
-        document.getElementById('chartTitle2').innerText = 'Radar de Maturidade nos 9 Domínios Clínicos — Pré-teste';
-        document.getElementById('chartSub2').innerText = 'Escala ampliada (0 a 70%) para visualização em projeção • Identificação imediata dos eixos de aprendizado';
-        chartRadar.data.labels = dadosM1.titulos_com_valores;
-        chartRadar.data.datasets = [
-          {
-            label: 'Assertividade da Turma (%)',
-            data: dadosM1.medias_questoes,
-            backgroundColor: 'rgba(56, 189, 248, 0.4)',
-            borderColor: '#38bdf8',
-            pointBackgroundColor: '#38bdf8',
-            pointBorderColor: '#ffffff',
-            pointHoverBackgroundColor: '#ffffff',
-            pointRadius: 7,
-            pointHoverRadius: 10,
-            borderWidth: 3.5
-          }
-        ];
-        chartRadar.options.scales.r.ticks.max = 70;
-        chartRadar.update();
-
-        // Chart 3
-        document.getElementById('chartTitle3').innerText = 'Perfil de Domínio Inicial da Turma';
-        document.getElementById('chartSub3').innerText = `Classificação dos ${dadosM1.n_alunos} participantes por faixas de proficiência (Básico, Intermediário e Avançado)`;
-        chartFaixas.data.datasets[0].data = dadosM1.faixas;
-        chartFaixas.update();
-
-        // Chart 4
-        document.getElementById('chartTitle4').innerText = 'Autoavaliação Declarada (Slider 0-10) vs Nota Efetiva (0-10)';
-        document.getElementById('chartSub4').innerText = 'Calibração metacognitiva (dados anônimos: passe o cursor para ver percepção vs nota)';
-        const scatterDataM1 = dadosM1.alunos.filter(a => a.slider !== null).map(a => ({ x: a.slider, y: a.nota }));
-        chartSlider.data.datasets[0].data = scatterDataM1;
-        chartSlider.data.datasets[0].label = 'Alunos (Autoavaliação vs Acerto Pré)';
-        chartSlider.update();
-
-        // Tabela
-        document.getElementById('tableTitle').innerText = 'Desempenho Individual dos Participantes — 1ª Resposta (Pré-teste)';
-        renderTabela(dadosM1.alunos);
-
-      } else if (num === 2) {
-        // Momento 2: Pós-teste
+      } else if (num === 2 && dadosM2) {
         icon.innerText = '🎯';
         banner.innerHTML = `<strong>Modo 2: Diagnóstico Final (Pós-teste):</strong> Avaliação consolidada após a conclusão dos módulos teóricos e práticos. Revela a consolidação dos conceitos regulatórios e a evolução da assertividade média.`;
 
-        // KPIs
         document.getElementById('kpiTitle1').innerText = 'Total de Alunos';
         document.getElementById('kpiVal1').innerHTML = dadosM2.n_alunos;
         document.getElementById('kpiSub1').innerText = 'Avaliados no Pós-teste';
@@ -896,76 +1232,10 @@
         document.getElementById('kpiVal5').innerHTML = dadosM2.pior_q;
         document.getElementById('kpiSub5').innerText = dadosM2.pior_tema;
 
-        // Chart 1
-        document.getElementById('chartTitle1').innerText = 'Taxa de Assertividade por Competência (%) — Pós-teste';
-        document.getElementById('chartSub1').innerText = `Percentual de acerto por questão no Pós-teste com linha de média da turma (${dadosM2.media_pct}%)`;
-        chartQuestoes.data.datasets = [
-          {
-            label: 'Assertividade Pós (%)',
-            data: dadosM2.medias_questoes,
-            backgroundColor: dadosM2.medias_questoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.9)' : v >= 48 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)'),
-            borderRadius: 8,
-            order: 2
-          },
-          {
-            type: 'line',
-            label: `Média da Turma Pós (${dadosM2.media_pct}%)`,
-            data: Array(9).fill(dadosM2.media_pct),
-            borderColor: '#10b981',
-            borderWidth: 3,
-            borderDash: [8, 5],
-            pointRadius: 0,
-            fill: false,
-            order: 1
-          }
-        ];
-        chartQuestoes.update();
-
-        // Chart 2
-        document.getElementById('chartTitle2').innerText = 'Radar de Maturidade nos 9 Domínios Clínicos — Pós-teste';
-        document.getElementById('chartSub2').innerText = 'Maturidade demonstrada ao término da capacitação clínica';
-        chartRadar.data.labels = dadosM2.titulos_com_valores;
-        chartRadar.data.datasets = [
-          {
-            label: 'Assertividade Pós-teste (%)',
-            data: dadosM2.medias_questoes,
-            backgroundColor: 'rgba(16, 185, 129, 0.4)',
-            borderColor: '#10b981',
-            pointBackgroundColor: '#10b981',
-            pointBorderColor: '#ffffff',
-            pointHoverBackgroundColor: '#ffffff',
-            pointRadius: 7,
-            pointHoverRadius: 10,
-            borderWidth: 3.5
-          }
-        ];
-        chartRadar.options.scales.r.ticks.max = 100;
-        chartRadar.update();
-
-        // Chart 3
-        document.getElementById('chartTitle3').innerText = 'Perfil de Domínio Final da Turma (Pós-teste)';
-        document.getElementById('chartSub3').innerText = `Classificação dos ${dadosM2.n_alunos} participantes após a conclusão do curso`;
-        chartFaixas.data.datasets[0].data = dadosM2.faixas;
-        chartFaixas.update();
-
-        // Chart 4
-        document.getElementById('chartTitle4').innerText = 'Autoavaliação Declarada vs Nota Efetiva (Pós-teste)';
-        document.getElementById('chartSub4').innerText = 'Calibração metacognitiva no encerramento da capacitação';
-        const scatterDataM2 = dadosM2.alunos.filter(a => a.slider !== null).map(a => ({ x: a.slider, y: a.nota }));
-        chartSlider.data.datasets[0].data = scatterDataM2;
-        chartSlider.data.datasets[0].label = 'Alunos (Autoavaliação vs Acerto Pós)';
-        chartSlider.update();
-
-        // Tabela
-        document.getElementById('tableTitle').innerText = 'Desempenho Individual dos Participantes — 2ª Resposta (Pós-teste)';
-        renderTabela(dadosM2.alunos);
-
-      } else if (num === 3) {
-        // Momento 3: Mesclado / Comparativo / Evolução
+      } else if (num === 3 && dadosM3) {
         icon.innerText = '🚀';
         banner.innerHTML = `<strong>Modo 3: Comparativo de Evolução Pedagógica (Pré vs Pós):</strong> Medição de impacto formativo. As barras duplas e os radares sobrepostos evidenciam o ganho de aprendizagem e a fixação de competências essenciais.`;
 
-        // KPIs
         document.getElementById('kpiTitle1').innerText = 'Evolução Média';
         document.getElementById('kpiVal1').innerHTML = `<span style="color:#34d399;">+${dadosM3.delta_medio} pts</span>`;
         document.getElementById('kpiSub1').innerText = `Pós (${dadosM3.media_pos} pts) vs Pré (${dadosM3.media_pre} pts)`;
@@ -985,120 +1255,32 @@
         document.getElementById('kpiTitle5').innerText = 'Aproveitamento Final';
         document.getElementById('kpiVal5').innerHTML = `<span style="color:#38bdf8;">${dadosM3.aproveitamento_pos}%</span>`;
         document.getElementById('kpiSub5').innerText = `Salto de +${dadosM3.delta_pct_aprov}% sobre o início`;
-
-        // Chart 1: Barras Comparativas Lado a Lado
-        document.getElementById('chartTitle1').innerText = 'Comparativo de Assertividade por Competência: Início vs Fim do Curso';
-        document.getElementById('chartSub1').innerText = 'Barras comparativas: 1ª Resposta / Pré-teste (Azul) vs 2ª Resposta / Pós-teste (Verde)';
-        chartQuestoes.data.datasets = [
-          {
-            label: '1ª Resposta (Pré-teste)',
-            data: dadosM3.medias_pre,
-            backgroundColor: 'rgba(56, 189, 248, 0.85)',
-            borderRadius: 6,
-            order: 2
-          },
-          {
-            label: '2ª Resposta (Pós-teste)',
-            data: dadosM3.medias_pos,
-            backgroundColor: 'rgba(16, 185, 129, 0.85)',
-            borderRadius: 6,
-            order: 1
-          }
-        ];
-        chartQuestoes.update();
-
-        // Chart 2: Radar Duplo Sobreposto
-        document.getElementById('chartTitle2').innerText = 'Radar Comparativo de Maturidade nos 9 Domínios (Sobreposição Pré x Pós)';
-        document.getElementById('chartSub2').innerText = 'Expansão da teia de competências: Azul = Pré-teste | Verde = Pós-teste';
-        chartRadar.data.labels = titulosQuestoes.map((t, i) => `${t} (Δ ${dadosM3.deltas[i] >= 0 ? '+' : ''}${dadosM3.deltas[i]}%)`);
-        chartRadar.data.datasets = [
-          {
-            label: '1ª Resposta (Pré-teste)',
-            data: dadosM3.medias_pre,
-            backgroundColor: 'rgba(56, 189, 248, 0.25)',
-            borderColor: '#38bdf8',
-            pointBackgroundColor: '#38bdf8',
-            pointRadius: 6,
-            borderWidth: 2.5
-          },
-          {
-            label: '2ª Resposta (Pós-teste)',
-            data: dadosM3.medias_pos,
-            backgroundColor: 'rgba(16, 185, 129, 0.4)',
-            borderColor: '#10b981',
-            pointBackgroundColor: '#10b981',
-            pointRadius: 7,
-            borderWidth: 3.5
-          }
-        ];
-        chartRadar.options.scales.r.ticks.max = 100;
-        chartRadar.update();
-
-        // Chart 4: Evolução Individual de Notas
-        document.getElementById('chartTitle4').innerText = 'Correlação de Evolução Individual: Nota Pré (Eixo X) vs Nota Pós (Eixo Y)';
-        document.getElementById('chartSub4').innerText = 'Pontos acima da linha diagonal representam ganho de aprendizagem efetivo';
-        const scatterComp = dadosM3.alunos_comp.map(a => ({ x: a.nota_pre, y: a.nota_pos, nome: a.nome, delta: a.delta }));
-        chartSlider.data.datasets[0].data = scatterComp;
-        chartSlider.data.datasets[0].label = 'Alunos (Evolução Pré -> Pós)';
-        chartSlider.data.datasets[0].backgroundColor = '#10b981';
-        chartSlider.data.datasets[0].borderColor = '#34d399';
-        chartSlider.options.scales.x.title.text = 'Nota no Inquérito Inicial / Pré-teste (0 a 10)';
-        chartSlider.options.scales.y.title.text = 'Nota no Inquérito Final / Pós-teste (0 a 10)';
-        chartSlider.options.plugins.tooltip.callbacks.label = ctx => {
-          const pt = ctx.raw;
-          return pt && pt.x !== undefined ? `Nota Pré: ${pt.x.toFixed(1)} | Nota Pós: ${pt.y.toFixed(1)} | Salto: ${pt.delta >= 0 ? '+' : ''}${pt.delta} pts` : '';
-        };
-        chartSlider.update();
-
-        // Tabela Comparativa
-        document.getElementById('tableTitle').innerText = 'Quadro Comparativo de Evolução dos Participantes (Pré vs Pós-teste)';
-        renderTabela(dadosM3.alunos_comp);
       }
     }
 
-    // Funções do Modal de Aviso (para quando M2/M3 ainda não carregados)
-    function abrirModalAviso() {
-      const m = document.getElementById('modalAvisoPos');
-      if (m) m.style.display = 'flex';
-    }
-
-    function fecharModalAviso() {
-      const m = document.getElementById('modalAvisoPos');
-      if (m) m.style.display = 'none';
-    }
-
-    // Leitor de CSV do Pós-teste no próprio navegador
-    function carregarCsvPosNavegador(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const text = e.target.result;
-        processarCsvPosCliente(text);
-      };
-      reader.readAsText(file, 'utf-8');
-    }
-
-    function processarCsvPosCliente(csvText) {
-      try {
-        const lines = csvText.split(/\r?\n/).filter(l => l.trim().length > 0);
-        if (lines.length < 2) {
-          alert('Arquivo CSV vazio ou com formato inválido.');
-          return;
-        }
-        
-        // Simulação rápida de pareamento e processamento
-        alert('Arquivo do Pós-teste recebido! Carregando dados no dashboard...');
-        fecharModalAviso();
-      } catch (err) {
-        alert('Erro ao processar CSV: ' + err.message);
+    // Alternância Master entre os 3 Momentos (Header Superior)
+    function selecionarMomento(num) {
+      if ((num === 2 || num === 3) && !temPos) {
+        abrirModalAviso();
+        return;
       }
+
+      momentoAtual = num;
+      document.getElementById('btnMomento1').classList.toggle('active', num === 1);
+      document.getElementById('btnMomento2').classList.toggle('active', num === 2);
+      document.getElementById('btnMomento3').classList.toggle('active', num === 3);
+
+      atualizarHeaderEKpis(num);
+
+      // Sincroniza todos os blocos individuais
+      ['barras', 'radar', 'faixas', 'slider', 'tabela'].forEach(tipo => {
+        mudarMomentoBloco(tipo, num);
+      });
     }
 
     // Funções do Modal de Detalhes do Aluno
     function abrirModal(id) {
-      let fonte = momentoAtual === 2 && dadosM2 ? dadosM2.alunos : dadosM1.alunos;
+      let fonte = estadoBlocos.tabela === 2 && dadosM2 ? dadosM2.alunos : dadosM1.alunos;
       const aluno = fonte.find(a => a.id === id);
       if (!aluno) return;
       
