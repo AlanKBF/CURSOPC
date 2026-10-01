@@ -21,39 +21,27 @@ def main():
     diretorio = os.path.dirname(os.path.abspath(__file__))
     os.chdir(diretorio)
     
-    # 1. Verifica se git está inicializado
-    if not os.path.exists(".git"):
-        print("[INFO] Inicializando repositório Git local...")
-        rodar("git init")
-        rodar("git branch -M main")
-        rodar("git remote add origin https://github.com/AlanKBF/CURSOPC.git")
-    else:
-        # Garante que o remote origin está configurado corretamente
-        rodar("git remote set-url origin https://github.com/AlanKBF/CURSOPC.git")
+    msg = sys.argv[1] if len(sys.argv) > 1 else "Atualizacao automatica do projeto de pesquisa clinica"
 
-    msg = sys.argv[1] if len(sys.argv) > 1 else "Atualizacao dos graficos e dashboard interativo do inquerito"
-
-    # 2. Adiciona arquivos e commita
-    print("\n[INFO] Preparando arquivos...")
+    print("\n[INFO] Adicionando arquivos modificados...")
     rodar("git add .")
     
     print("\n[INFO] Realizando commit...")
     rodar(f'git commit -m "{msg}"')
     
-    # 3. Faz o push para o GitHub
-    print("\n[INFO] Enviando para o GitHub (push origin main)...")
-    code = rodar("git push -u origin main")
+    print("\n[INFO] Enviando para o GitHub...")
+    code = rodar("git push origin main")
     
     if code == 0:
         print("\n" + "="*60)
         print("✅ PUSH REALIZADO COM SUCESSO NO GITHUB!")
         print("Repositório: https://github.com/AlanKBF/CURSOPC")
-        print("GitHub Pages: https://alankbf.github.io/CURSOPC/")
+        print("Dashboard GitHub Pages: https://alankbf.github.io/CURSOPC/")
         print("="*60 + "\n")
     else:
-        print("\n[AVISO] Tentando sincronizar com git pull antes do push...")
-        rodar("git pull origin main --rebase --allow-unrelated-histories")
-        rodar("git push -u origin main")
+        print("\n[AVISO] Tentando sincronização com origin/main...")
+        rodar("git pull origin main --rebase")
+        rodar("git push origin main")
 
 if __name__ == "__main__":
     main()
