@@ -778,7 +778,76 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
     const mediasQuestoes = {json.dumps(q_medias)};
     const mediaGeralTurma = {media_geral_pct};
 
-    // 1. Chart Questoes (Barras com linha de média)
+    // Plugin para renderizar percentuais em cima de cada barra
+    const pluginBarLabels = {{
+      id: 'pluginBarLabels',
+      afterDatasetsDraw(chart) {{
+        const {{ ctx, data }} = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || meta.hidden) return;
+
+        ctx.save();
+        meta.data.forEach((bar, index) => {{
+          const val = data.datasets[0].data[index];
+          if (val !== undefined && val !== null) {{
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 16px system-ui, -apple-system, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+            ctx.shadowBlur = 6;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 2;
+            ctx.fillText(Number(val).toFixed(1) + '%', bar.x, bar.y - 8);
+          }}
+        }});
+        ctx.restore();
+      }}
+    }};
+
+    // Plugin para renderizar percentuais e contagem dentro das fatias da rosca
+    const pluginDoughnutLabels = {{
+      id: 'pluginDoughnutLabels',
+      afterDatasetsDraw(chart) {{
+        const {{ ctx, data }} = chart;
+        const meta = chart.getDatasetMeta(0);
+        if (!meta || meta.hidden) return;
+
+        const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+        if (!total) return;
+
+        ctx.save();
+        meta.data.forEach((element, index) => {{
+          const val = data.datasets[0].data[index];
+          if (!val) return;
+          const pct = ((val / total) * 100).toFixed(1).replace('.0', '') + '%';
+
+          const {{ startAngle, endAngle, outerRadius, innerRadius, x, y }} = element;
+          const midAngle = (startAngle + endAngle) / 2;
+          const radius = innerRadius + (outerRadius - innerRadius) * 0.52;
+
+          const posX = x + Math.cos(midAngle) * radius;
+          const posY = y + Math.sin(midAngle) * radius;
+
+          ctx.fillStyle = '#ffffff';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
+          ctx.shadowBlur = 8;
+
+          // Percentual em destaque
+          ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+          ctx.fillText(pct, posX, posY - 9);
+
+          // Contagem de alunos
+          ctx.font = 'bold 14px system-ui, -apple-system, sans-serif';
+          ctx.fillText(`(${{val}} ${{val === 1 ? 'aluno' : 'alunos'}})`, posX, posY + 12);
+        }});
+        ctx.restore();
+      }}
+    }};
+
+    // 1. Chart Questoes (Barras com linha de média e % no topo das barras)
     new Chart(document.getElementById('chartQuestoes'), {{
       type: 'bar',
       data: {{
@@ -804,9 +873,15 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
           }}
         ]
       }},
+      plugins: [pluginBarLabels],
       options: {{
         responsive: true,
         maintainAspectRatio: false,
+        layout: {{
+          padding: {{
+            top: 25
+          }}
+        }},
         plugins: {{
           legend: {{ display: true, labels: {{ color: '#f8fafc', font: {{ size: 15, weight: '700' }} }} }},
           tooltip: {{
@@ -818,7 +893,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
           }}
         }},
         scales: {{
-          y: {{ min: 0, max: 100, grid: {{ color: '#24344d' }}, ticks: {{ color: '#cbd5e1', font: {{ size: 14, weight: '600' }}, callback: v => v + '%' }} }},
+          y: {{ min: 0, max: 108, grid: {{ color: '#24344d' }}, ticks: {{ color: '#cbd5e1', font: {{ size: 14, weight: '600' }}, callback: v => v + '%' }} }},
           x: {{ grid: {{ display: false }}, ticks: {{ color: '#f8fafc', font: {{ size: 13.5, weight: '700' }} }} }}
         }}
       }}
@@ -879,7 +954,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       }}
     }});
 
-    // 3. Chart Faixas de Domínio (Doughnut)
+    // 3. Chart Faixas de Domínio (Doughnut com % e contagem dentro das fatias)
     new Chart(document.getElementById('chartFaixas'), {{
       type: 'doughnut',
       data: {{
@@ -895,6 +970,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
           borderWidth: 3
         }}]
       }},
+      plugins: [pluginDoughnutLabels],
       options: {{
         responsive: true,
         maintainAspectRatio: false,
@@ -908,7 +984,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
             }}
           }}
         }},
-        cutout: '58%'
+        cutout: '50%'
       }}
     }});
 
