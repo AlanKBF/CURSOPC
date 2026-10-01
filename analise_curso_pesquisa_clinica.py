@@ -219,10 +219,6 @@ def criar_graficos_pre_teste(df_avaliado, pasta_graficos):
             corr = np.corrcoef(x_val, y_val)[0,1]
             ax.plot(x_lin, p(x_lin), color='#dc2626', linestyle='--', linewidth=1.8, label=f'Tendência Real da Turma (r = {corr:.2f})')
             
-        for _, r in df_slider.iterrows():
-            ax.annotate(r['NOME'].split()[0], (r['Autoavaliacao_Slider'], r['Nota_10']), 
-                        textcoords="offset points", xytext=(0, 6), ha='center', fontsize=8, fontweight='medium', color='#334155')
-            
         ax.set_xlim(-0.5, 10.5)
         ax.set_ylim(-0.5, 10.5)
         ax.set_xticks(range(0, 11))
@@ -867,14 +863,14 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       }}
     }});
 
-    // 4. Chart Scatter Slider vs Nota Real
-    const scatterData = dadosAlunos.filter(a => a.slider !== null).map(a => ({{ x: a.slider, y: a.nota, nome: a.nome }}));
+    // 4. Chart Scatter Slider vs Nota Real (Anônimo: apenas autoavaliação e nota)
+    const scatterData = dadosAlunos.filter(a => a.slider !== null).map(a => ({{ x: a.slider, y: a.nota }}));
     new Chart(document.getElementById('chartSlider'), {{
       type: 'scatter',
       data: {{
         datasets: [
           {{
-            label: 'Alunos (Autoavaliação vs Nota)',
+            label: 'Alunos (Autoavaliação vs Acerto)',
             data: scatterData,
             backgroundColor: '#a855f7',
             borderColor: '#c084fc',
@@ -901,7 +897,9 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
           legend: {{ position: 'bottom', labels: {{ color: '#cbd5e1', font: {{ size: 11 }} }} }},
           tooltip: {{
             callbacks: {{
-              label: ctx => ctx.raw.nome ? `${{ctx.raw.nome}}: Declarou ${{ctx.raw.x}}/10 | Obteve ${{ctx.raw.y}}/10` : ctx.dataset.label
+              label: ctx => ctx.raw && ctx.raw.x !== undefined 
+                ? `Autoavaliação: ${{ctx.raw.x}}/10  |  Acerto Efetivo: ${{ctx.raw.y}}/10` 
+                : ctx.dataset.label
             }}
           }}
         }},
@@ -942,7 +940,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       renderTabela(filtrados);
     }});
 
-    // Modal
+    // Funções do Modal
     function abrirModal(id) {{
       const aluno = dadosAlunos.find(a => a.id === id);
       if (!aluno) return;
@@ -977,6 +975,30 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html):
       document.getElementById('modalBody').innerHTML = htmlQuestoes;
       document.getElementById('modalDetalhes').style.display = 'flex';
     }}
+
+    function fecharModal() {{
+      const modal = document.getElementById('modalDetalhes');
+      if (modal) {{
+        modal.style.display = 'none';
+      }}
+    }}
+
+    // Fechar ao clicar no backdrop escuro fora do conteúdo
+    const modalEl = document.getElementById('modalDetalhes');
+    if (modalEl) {{
+      modalEl.addEventListener('click', function(e) {{
+        if (e.target === this) {{
+          fecharModal();
+        }}
+      }});
+    }}
+
+    // Fechar ao pressionar a tecla ESC
+    document.addEventListener('keydown', function(e) {{
+      if (e.key === 'Escape' || e.key === 'Esc') {{
+        fecharModal();
+      }}
+    }});
 
   </script>
 </body>
