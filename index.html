@@ -20,86 +20,128 @@
       --danger: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background: var(--bg); color: var(--text-main); min-height: 100vh; padding: 24px; }
-    .container { max-width: 1440px; margin: 0 auto; }
+    body { background: var(--bg); color: var(--text-main); min-height: 100vh; padding: 30px; font-size: 16px; scroll-behavior: smooth; }
+    .container { max-width: 1600px; width: 100%; margin: 0 auto; }
     
-    /* Header */
+    /* Header para Projeção */
     header {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 16px;
-      padding: 24px 30px;
-      margin-bottom: 24px;
+      border-radius: 20px;
+      padding: 30px 40px;
+      margin-bottom: 30px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 16px;
-      box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+      gap: 20px;
+      box-shadow: 0 12px 35px -10px rgba(0,0,0,0.5);
     }
-    .header-titles h1 { font-size: 25px; font-weight: 800; background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .header-titles p { color: var(--text-muted); font-size: 13.5px; margin-top: 4px; }
-    .badge { background: rgba(56, 189, 248, 0.12); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.35); padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+    .header-titles h1 { font-size: 32px; font-weight: 800; background: var(--accent-grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header-titles p { color: var(--text-muted); font-size: 17px; margin-top: 6px; }
+    .badge { background: rgba(56, 189, 248, 0.15); color: var(--accent); border: 1px solid rgba(56, 189, 248, 0.4); padding: 10px 20px; border-radius: 30px; font-size: 15px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; }
     
-    /* KPIs */
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .kpi-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 14px; padding: 18px 20px; transition: transform 0.2s; }
-    .kpi-card:hover { transform: translateY(-2px); }
-    .kpi-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 6px; }
-    .kpi-value { font-size: 26px; font-weight: 800; color: var(--text-main); }
-    .kpi-sub { font-size: 12.5px; color: var(--accent); margin-top: 4px; font-weight: 600; }
-    
-    /* Guia visual de interpretação */
-    .info-banner {
-      background: rgba(30, 41, 59, 0.6);
+    /* Barra de Navegação Rápida para Projeção */
+    .nav-presentation {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+      background: var(--card-bg);
+      padding: 16px 22px;
+      border-radius: 14px;
       border: 1px solid var(--card-border);
-      border-left: 4px solid var(--accent);
+    }
+    .nav-presentation a {
+      background: #0b1120;
+      color: #cbd5e1;
+      text-decoration: none;
+      padding: 10px 18px;
       border-radius: 10px;
-      padding: 14px 18px;
-      margin-bottom: 24px;
-      font-size: 13px;
+      font-size: 14.5px;
+      font-weight: 700;
+      border: 1px solid var(--card-border);
+      transition: all 0.2s;
+    }
+    .nav-presentation a:hover {
+      background: var(--accent);
+      color: #0b1120;
+      border-color: var(--accent);
+    }
+
+    /* KPIs */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; margin-bottom: 35px; }
+    .kpi-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px; padding: 24px; transition: transform 0.2s; box-shadow: 0 8px 25px -8px rgba(0,0,0,0.3); }
+    .kpi-card:hover { transform: translateY(-3px); }
+    .kpi-title { font-size: 13.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 8px; }
+    .kpi-value { font-size: 34px; font-weight: 800; color: var(--text-main); }
+    .kpi-sub { font-size: 15px; color: var(--accent); margin-top: 6px; font-weight: 600; }
+    
+    /* Guia visual */
+    .info-banner {
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--card-border);
+      border-left: 5px solid var(--accent);
+      border-radius: 14px;
+      padding: 18px 24px;
+      margin-bottom: 35px;
+      font-size: 15.5px;
       color: #cbd5e1;
       display: flex;
       align-items: center;
-      gap: 12px;
-      line-height: 1.5;
+      gap: 16px;
+      line-height: 1.6;
     }
     
-    /* Charts Grid */
-    .charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(480px, 1fr)); gap: 20px; margin-bottom: 24px; }
-    .chart-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 22px; position: relative; }
-    .chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-    .chart-header h3 { font-size: 16px; font-weight: 700; color: var(--text-main); }
-    .chart-subtitle { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-    .chart-canvas-container { position: relative; height: 330px; width: 100%; }
+    /* Layout: 1 BLOCO POR SEÇÃO (100% da tela para projeção) */
+    .charts-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 50px;
+      margin-bottom: 50px;
+    }
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 42px 45px;
+      width: 100%;
+      position: relative;
+      box-shadow: 0 16px 40px -10px rgba(0,0,0,0.45);
+      scroll-margin-top: 25px;
+    }
+    .chart-header { margin-bottom: 26px; }
+    .chart-header h3 { font-size: 28px; font-weight: 800; color: var(--text-main); letter-spacing: -0.01em; }
+    .chart-subtitle { font-size: 17px; color: var(--text-muted); margin-top: 8px; font-weight: 500; }
+    .chart-canvas-container { position: relative; height: 640px; width: 100%; }
     
     /* Tabela */
-    .table-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 24px; margin-bottom: 30px; }
-    .table-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
-    .search-box { background: #0b1120; border: 1px solid var(--card-border); border-radius: 8px; padding: 9px 14px; color: white; width: 300px; font-size: 13.5px; outline: none; transition: border-color 0.2s; }
+    .table-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 24px; padding: 40px 45px; margin-bottom: 45px; scroll-margin-top: 25px; }
+    .table-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 26px; }
+    .search-box { background: #0b1120; border: 1px solid var(--card-border); border-radius: 12px; padding: 14px 20px; color: white; width: 360px; font-size: 16px; outline: none; transition: border-color 0.2s; }
     .search-box:focus { border-color: var(--accent); }
     table { width: 100%; border-collapse: collapse; text-align: left; }
-    th { background: #111a2c; color: var(--text-muted); padding: 12px 14px; font-size: 12px; text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; }
-    td { padding: 14px; border-bottom: 1px solid var(--card-border); font-size: 13.5px; color: var(--text-main); }
-    tr:hover td { background: rgba(255,255,255,0.02); }
-    .score-badge { display: inline-block; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 12.5px; }
+    th { background: #111a2c; color: var(--text-muted); padding: 16px 18px; font-size: 14px; text-transform: uppercase; font-weight: 800; letter-spacing: 0.05em; }
+    td { padding: 16px 18px; border-bottom: 1px solid var(--card-border); font-size: 15.5px; color: var(--text-main); }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+    .score-badge { display: inline-block; padding: 6px 14px; border-radius: 8px; font-weight: 800; font-size: 14.5px; }
     .score-green { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
     .score-yellow { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4); }
     .score-red { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
-    .btn-detalhes { background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.4); color: var(--accent); padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+    .btn-detalhes { background: rgba(56, 189, 248, 0.15); border: 1px solid rgba(56, 189, 248, 0.45); color: var(--accent); padding: 9px 18px; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 700; transition: all 0.2s; }
     .btn-detalhes:hover { background: var(--accent); color: #0b1120; }
     
     /* Modal de Detalhes */
-    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 20px; }
-    .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 18px; max-width: 920px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 28px; position: relative; }
-    .modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; color: var(--text-muted); cursor: pointer; }
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; justify-content: center; align-items: center; padding: 25px; }
+    .modal-content { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 22px; max-width: 980px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 35px; position: relative; }
+    .modal-close { position: absolute; top: 22px; right: 22px; background: none; border: none; font-size: 32px; color: var(--text-muted); cursor: pointer; line-height: 1; padding: 4px; }
     .modal-close:hover { color: white; }
-    .question-block { background: #0b1120; border: 1px solid var(--card-border); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
-    .q-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-    .q-title { font-size: 14px; font-weight: 700; color: var(--accent); }
-    .q-enunciado { font-size: 13px; color: var(--text-muted); font-style: italic; margin-bottom: 10px; }
-    .q-resp { background: #162032; padding: 10px 14px; border-radius: 8px; margin-bottom: 8px; font-size: 13.5px; border-left: 3px solid #3b82f6; }
-    .q-fb { font-size: 12.5px; color: #a7f3d0; background: rgba(16, 185, 129, 0.1); padding: 8px 12px; border-radius: 6px; }
+    .question-block { background: #0b1120; border: 1px solid var(--card-border); border-radius: 14px; padding: 20px; margin-bottom: 20px; }
+    .q-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .q-title { font-size: 16px; font-weight: 800; color: var(--accent); }
+    .q-enunciado { font-size: 14.5px; color: var(--text-muted); font-style: italic; margin-bottom: 12px; line-height: 1.5; }
+    .q-resp { background: #162032; padding: 14px 18px; border-radius: 10px; margin-bottom: 10px; font-size: 15px; border-left: 4px solid #3b82f6; line-height: 1.5; }
+    .q-fb { font-size: 14px; color: #a7f3d0; background: rgba(16, 185, 129, 0.12); padding: 10px 16px; border-radius: 8px; line-height: 1.5; }
   </style>
 </head>
 <body>
@@ -114,10 +156,20 @@
       </div>
     </header>
 
+    <!-- Atalhos de Navegação para Modo Projeção -->
+    <div class="nav-presentation">
+      <span style="font-weight: 800; color: var(--accent); align-self: center; margin-right: 8px; font-size: 16px;">Modo Projeção:</span>
+      <a href="#bloco-barras">1. Barras de Assertividade</a>
+      <a href="#bloco-radar">2. Radar nos 9 Domínios (Aranha)</a>
+      <a href="#bloco-faixas">3. Perfil de Domínio da Turma</a>
+      <a href="#bloco-slider">4. Autoavaliação vs Nota Real</a>
+      <a href="#bloco-tabela">5. Tabela de Alunos</a>
+    </div>
+
     <div class="info-banner">
-      <span style="font-size: 20px;">💡</span>
+      <span style="font-size: 26px;">💡</span>
       <div>
-        <strong>Como interpretar os gráficos:</strong> Tanto o gráfico de <em>Barras</em> quanto o <em>Radar</em> representam os mesmos percentuais de assertividade por questão. No <strong>Radar</strong>, a borda externa indica <strong>100% (gabarito pleno)</strong> e o centro indica <strong>0%</strong> — pontas esticadas para fora indicam alto domínio, enquanto reentrâncias para o centro apontam temas com maior necessidade de reforço em aula.
+        <strong>Modo Projeção Pedagógica:</strong> Gráficos exibidos em tela ampla (1 bloco por seção) com fontes ampliadas para facilitar a visualização por toda a sala. No <strong>Radar (Aranha)</strong>, a escala foi calibrada de 0% a 70% sem o gabarito externo, expandindo a teia para evidenciar com nitidez os pontos fortes e os temas prioritários de reforço.
       </div>
     </div>
 
@@ -129,7 +181,7 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-title">Média Geral da Turma</div>
-        <div class="kpi-value">9.3 <span style="font-size: 15px; color: var(--text-muted);">/ 18 pts</span></div>
+        <div class="kpi-value">9.3 <span style="font-size: 17px; color: var(--text-muted);">/ 18 pts</span></div>
         <div class="kpi-sub">51.8% de aproveitamento</div>
       </div>
       <div class="kpi-card">
@@ -139,23 +191,23 @@
       </div>
       <div class="kpi-card">
         <div class="kpi-title">Maior Domínio</div>
-        <div class="kpi-value" style="font-size: 20px; color: #34d399;">Q3 (63.2%)</div>
+        <div class="kpi-value" style="font-size: 22px; color: #34d399;">Q3 (63.2%)</div>
         <div class="kpi-sub">Ética em pesquisa</div>
       </div>
       <div class="kpi-card">
         <div class="kpi-title">Ponto Crítico</div>
-        <div class="kpi-value" style="font-size: 20px; color: #f87171;">Q7 (42.1%)</div>
+        <div class="kpi-value" style="font-size: 22px; color: #f87171;">Q7 (42.1%)</div>
         <div class="kpi-sub">Evento adverso</div>
       </div>
     </div>
 
     <div class="charts-grid">
-      <!-- Gráfico 1: Barras -->
-      <div class="chart-card">
+      <!-- Bloco 1: Barras -->
+      <div id="bloco-barras" class="chart-card">
         <div class="chart-header">
           <div>
             <h3>Taxa de Assertividade por Competência (%)</h3>
-            <div class="chart-subtitle">Percentual de acerto em relação ao gabarito com linha de média da turma (51.8%)</div>
+            <div class="chart-subtitle">Percentual de acerto por questão do inquérito em relação ao gabarito com linha de média da turma (51.8%)</div>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -163,12 +215,12 @@
         </div>
       </div>
 
-      <!-- Gráfico 2: Radar -->
-      <div class="chart-card">
+      <!-- Bloco 2: Radar -->
+      <div id="bloco-radar" class="chart-card">
         <div class="chart-header">
           <div>
             <h3>Radar de Maturidade nos 9 Domínios Clínicos</h3>
-            <div class="chart-subtitle">Extremidade externa = 100% (Gabarito Pleno) | Centro = 0%</div>
+            <div class="chart-subtitle">Escala ampliada (0 a 70%) para visualização em projeção • Identificação imediata dos eixos de aprendizado</div>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -176,12 +228,12 @@
         </div>
       </div>
 
-      <!-- Gráfico 3: Distribuição dos Níveis da Turma -->
-      <div class="chart-card">
+      <!-- Bloco 3: Distribuição dos Níveis da Turma -->
+      <div id="bloco-faixas" class="chart-card">
         <div class="chart-header">
           <div>
             <h3>Perfil de Domínio Inicial da Turma</h3>
-            <div class="chart-subtitle">Classificação dos 19 participantes por faixa de proficiência</div>
+            <div class="chart-subtitle">Classificação dos 19 participantes por faixas de proficiência (Básico, Intermediário e Avançado)</div>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -189,12 +241,12 @@
         </div>
       </div>
 
-      <!-- Gráfico 4: Dispersão Slider vs Nota -->
-      <div class="chart-card">
+      <!-- Bloco 4: Dispersão Slider vs Nota -->
+      <div id="bloco-slider" class="chart-card">
         <div class="chart-header">
           <div>
-            <h3>Autoavaliação (Slider 0-10) vs Nota Efetiva (0-10)</h3>
-            <div class="chart-subtitle">Calibração metacognitiva entre o que o aluno achava e a nota obtida</div>
+            <h3>Autoavaliação Declarada (Slider 0-10) vs Nota Efetiva (0-10)</h3>
+            <div class="chart-subtitle">Calibração metacognitiva (dados anônimos: passe o cursor para ver percepção vs nota)</div>
           </div>
         </div>
         <div class="chart-canvas-container">
@@ -204,11 +256,11 @@
     </div>
 
     <!-- Tabela Geral -->
-    <div class="table-card">
+    <div id="bloco-tabela" class="table-card">
       <div class="table-header">
         <div>
-          <h3>Desempenho Individual dos Participantes</h3>
-          <p style="font-size: 13px; color: var(--text-muted);">Clique em "Ver Respostas" para inspecionar cada pergunta, resposta do aluno, gabarito e feedback do corretor.</p>
+          <h3 style="font-size: 26px; font-weight: 800;">Desempenho Individual dos Participantes</h3>
+          <p style="font-size: 15px; color: var(--text-muted); margin-top: 6px;">Clique em "Ver Respostas" para inspecionar cada pergunta, resposta do aluno, gabarito e feedback do corretor.</p>
         </div>
         <input type="text" id="searchInput" class="search-box" placeholder="Buscar por nome do aluno...">
       </div>
@@ -258,8 +310,8 @@
           {
             label: 'Assertividade (%)',
             data: mediasQuestoes,
-            backgroundColor: mediasQuestoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.85)' : v >= 48 ? 'rgba(245, 158, 11, 0.85)' : 'rgba(239, 68, 68, 0.85)'),
-            borderRadius: 6,
+            backgroundColor: mediasQuestoes.map(v => v >= 60 ? 'rgba(16, 185, 129, 0.9)' : v >= 48 ? 'rgba(245, 158, 11, 0.9)' : 'rgba(239, 68, 68, 0.9)'),
+            borderRadius: 8,
             order: 2
           },
           {
@@ -267,8 +319,8 @@
             label: 'Média da Turma (51.8%)',
             data: Array(9).fill(mediaGeralTurma),
             borderColor: '#38bdf8',
-            borderWidth: 2,
-            borderDash: [6, 4],
+            borderWidth: 3,
+            borderDash: [8, 5],
             pointRadius: 0,
             fill: false,
             order: 1
@@ -279,21 +331,23 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: true, labels: { color: '#cbd5e1', font: { size: 11 } } },
+          legend: { display: true, labels: { color: '#f8fafc', font: { size: 15, weight: '700' } } },
           tooltip: {
+            titleFont: { size: 16 },
+            bodyFont: { size: 15 },
             callbacks: {
               label: ctx => ctx.dataset.type === 'line' ? `Média da Turma: ${ctx.raw}%` : `Assertividade: ${ctx.raw}%`
             }
           }
         },
         scales: {
-          y: { min: 0, max: 100, grid: { color: '#24344d' }, ticks: { color: '#94a3b8', callback: v => v + '%' } },
-          x: { grid: { display: false }, ticks: { color: '#cbd5e1', font: { size: 10.5, weight: '600' } } }
+          y: { min: 0, max: 100, grid: { color: '#24344d' }, ticks: { color: '#cbd5e1', font: { size: 14, weight: '600' }, callback: v => v + '%' } },
+          x: { grid: { display: false }, ticks: { color: '#f8fafc', font: { size: 13.5, weight: '700' } } }
         }
       }
     });
 
-    // 2. Chart Radar (Com anéis visíveis e valores rotulados)
+    // 2. Chart Radar (Sem meta 100%, expandido para preencher a tela na escala 0-70%)
     new Chart(document.getElementById('chartRadar'), {
       type: 'radar',
       data: {
@@ -302,22 +356,14 @@
           {
             label: 'Assertividade da Turma (%)',
             data: mediasQuestoes,
-            backgroundColor: 'rgba(56, 189, 248, 0.35)',
+            backgroundColor: 'rgba(56, 189, 248, 0.4)',
             borderColor: '#38bdf8',
             pointBackgroundColor: '#38bdf8',
             pointBorderColor: '#ffffff',
             pointHoverBackgroundColor: '#ffffff',
-            pointRadius: 5,
-            borderWidth: 2.5
-          },
-          {
-            label: 'Meta / Gabarito Pleno (100%)',
-            data: Array(9).fill(100),
-            borderColor: 'rgba(16, 185, 129, 0.6)',
-            borderWidth: 1.5,
-            borderDash: [5, 5],
-            pointRadius: 0,
-            fill: false
+            pointRadius: 7,
+            pointHoverRadius: 10,
+            borderWidth: 3.5
           }
         ]
       },
@@ -325,29 +371,31 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 11 } } },
+          legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 15, weight: '700' } } },
           tooltip: {
+            titleFont: { size: 16 },
+            bodyFont: { size: 15 },
             callbacks: {
-              label: ctx => `${ctx.dataset.label}: ${ctx.raw}%`
+              label: ctx => `Assertividade da Turma: ${ctx.raw}%`
             }
           }
         },
         scales: {
           r: {
-            angleLines: { color: '#334155' },
-            grid: { color: '#24344d', lineWidth: 1 },
+            angleLines: { color: '#334155', lineWidth: 1.5 },
+            grid: { color: '#1e293b', lineWidth: 1.5 },
             pointLabels: {
               color: '#f8fafc',
-              font: { size: 11, weight: '700' }
+              font: { size: 15, weight: '800' }
             },
             ticks: {
               display: true,
-              stepSize: 20,
+              stepSize: 10,
               min: 0,
-              max: 100,
+              max: 70,
               backdropColor: 'transparent',
-              color: '#64748b',
-              font: { size: 9 }
+              color: '#94a3b8',
+              font: { size: 13, weight: '600' }
             }
           }
         }
@@ -374,14 +422,16 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 11.5 } } },
+          legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 15, weight: '700' }, padding: 22 } },
           tooltip: {
+            titleFont: { size: 16 },
+            bodyFont: { size: 15 },
             callbacks: {
               label: ctx => ` ${ctx.label}: ${ctx.raw} alunos (${Math.round(ctx.raw/19*100)}%)`
             }
           }
         },
-        cutout: '62%'
+        cutout: '58%'
       }
     });
 
@@ -396,17 +446,17 @@
             data: scatterData,
             backgroundColor: '#a855f7',
             borderColor: '#c084fc',
-            borderWidth: 1.5,
-            pointRadius: 7,
-            pointHoverRadius: 9
+            borderWidth: 2,
+            pointRadius: 9,
+            pointHoverRadius: 12
           },
           {
             type: 'line',
             label: 'Calibração Ideal (Percepção = Nota Real)',
             data: [{x: 0, y: 0}, {x: 10, y: 10}],
-            borderColor: 'rgba(148, 163, 184, 0.6)',
-            borderDash: [6, 4],
-            borderWidth: 1.8,
+            borderColor: 'rgba(148, 163, 184, 0.7)',
+            borderDash: [8, 5],
+            borderWidth: 2.2,
             pointRadius: 0,
             fill: false
           }
@@ -416,8 +466,10 @@
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'bottom', labels: { color: '#cbd5e1', font: { size: 11 } } },
+          legend: { position: 'bottom', labels: { color: '#f8fafc', font: { size: 15, weight: '700' } } },
           tooltip: {
+            titleFont: { size: 16 },
+            bodyFont: { size: 15 },
             callbacks: {
               label: ctx => ctx.raw && ctx.raw.x !== undefined 
                 ? `Autoavaliação: ${ctx.raw.x}/10  |  Acerto Efetivo: ${ctx.raw.y}/10` 
@@ -426,8 +478,8 @@
           }
         },
         scales: {
-          x: { min: 0, max: 10, title: { display: true, text: 'Autoavaliação Declarada no REDCap (0 a 10)', color: '#94a3b8', font: { weight: 'bold' } }, grid: { color: '#24344d' }, ticks: { color: '#94a3b8' } },
-          y: { min: 0, max: 10, title: { display: true, text: 'Nota Efetiva Obtida no Teste (0 a 10)', color: '#94a3b8', font: { weight: 'bold' } }, grid: { color: '#24344d' }, ticks: { color: '#94a3b8' } }
+          x: { min: 0, max: 10, title: { display: true, text: 'Autoavaliação Declarada no REDCap (0 a 10)', color: '#cbd5e1', font: { size: 15, weight: 'bold' } }, grid: { color: '#24344d' }, ticks: { color: '#f8fafc', font: { size: 14, weight: '600' } } },
+          y: { min: 0, max: 10, title: { display: true, text: 'Nota Efetiva Obtida no Teste (0 a 10)', color: '#cbd5e1', font: { size: 15, weight: 'bold' } }, grid: { color: '#24344d' }, ticks: { color: '#f8fafc', font: { size: 14, weight: '600' } } }
         }
       }
     });
