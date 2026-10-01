@@ -897,7 +897,7 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
   <div class="container">
     <header>
       <div class="header-titles">
-        <h1>Inquérito de Conhecimentos em Pesquisa Clínica</h1>
+        <h1>Inquérito de Conhecimentos em Pesquisa Clínica <span style="background: rgba(56, 189, 248, 0.18); border: 1px solid #38bdf8; color: #38bdf8; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 20px; vertical-align: middle;">v1.5 • Atualizado</span></h1>
         <p>Curso de Capacitação CEPEM / FIOCRUZ • Análise Quantitativa e Diagnóstico Pedagógico</p>
       </div>
       
@@ -1369,38 +1369,6 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
       }}
     }});
 
-    // Plugin para desenhar rótulos sobre os pontos de autoavaliação (mantendo anonimato)
-    const pluginScatterLabels = {{
-      id: 'pluginScatterLabels',
-      afterDatasetsDraw(chart) {{
-        if (chart.canvas.id !== 'chartSlider') return;
-        const {{ ctx }} = chart;
-        const meta = chart.getDatasetMeta(0);
-        if (!meta || meta.hidden) return;
-
-        ctx.save();
-        meta.data.forEach((pt, index) => {{
-          const raw = chart.data.datasets[0].data[index];
-          if (!raw || raw.x === undefined || raw.y === undefined) return;
-
-          ctx.fillStyle = '#ffffff';
-          ctx.font = 'bold 13px system-ui, -apple-system, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'bottom';
-          ctx.shadowColor = 'rgba(0, 0, 0, 0.95)';
-          ctx.shadowBlur = 6;
-          ctx.shadowOffsetY = 1;
-
-          if (typeof estadoBlocos !== 'undefined' && estadoBlocos.slider === 3) {{
-            ctx.fillText(`Pré: ${{Number(raw.x).toFixed(1)}} | Pós: ${{Number(raw.y).toFixed(1)}}`, pt.x, pt.y - 11);
-          }} else {{
-            ctx.fillText(`Autoav.: ${{Number(raw.x).toFixed(0)}} | Nota: ${{Number(raw.y).toFixed(1)}}`, pt.x, pt.y - 11);
-          }}
-        }});
-        ctx.restore();
-      }}
-    }};
-
     // 4. Chart Scatter Slider vs Nota Real
     const scatterDataM1 = dadosM1.alunos.filter(a => a.slider !== null).map(a => ({{ x: a.slider, y: a.nota }}));
     const chartSlider = new Chart(document.getElementById('chartSlider'), {{
@@ -1428,7 +1396,6 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
           }}
         ]
       }},
-      plugins: [pluginScatterLabels],
       options: {{
         responsive: true,
         maintainAspectRatio: false,
@@ -1447,8 +1414,6 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
         }},
         scales: {{
           x: {{
-            type: 'linear',
-            position: 'bottom',
             min: 0,
             max: 10,
             title: {{ display: true, text: 'Autoavaliação Declarada no REDCap (0 a 10)', color: '#cbd5e1', font: {{ size: 15, weight: 'bold' }} }},
@@ -1456,7 +1421,6 @@ def gerar_dashboard_html(df_avaliado, df_comparativo, caminho_html, df_avaliado_
             ticks: {{ color: '#f8fafc', font: {{ size: 14, weight: '600' }}, stepSize: 1 }}
           }},
           y: {{
-            type: 'linear',
             min: 0,
             max: 10,
             title: {{ display: true, text: 'Nota Efetiva Obtida no Teste (0 a 10)', color: '#cbd5e1', font: {{ size: 15, weight: 'bold' }} }},
